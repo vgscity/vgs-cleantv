@@ -1,5 +1,25 @@
 [
  {
+  "ban": "4.0.1",
+  "ngay": "2026-11-01",
+  "vi": [
+   "- Tivi hết bộ nhớ thì báo rõ còn trống bao nhiêu, cần bao nhiêu, kèm nút Dọn bộ nhớ đệm (xoá cache các app, không mất dữ liệu) rồi cài tiếp. Trước đây cài treo 2 phút rồi báo nhầm do Play Protect",
+   "- Màn thông tin tivi hiện bộ nhớ còn trống",
+   "- Đổi giao diện không còn tắt hẳn rồi mở lại Home sạch: tránh lỗi làm tivi TCL Android 11 tự khởi động lại; tivi TCL tự cho Home sạch chạy lại sau khi bật máy",
+   "- CleanTV chạy ngay trên tivi: rời app để đi thử Home thì 20 phút sau mới tự tắt ADB (trước là 1 phút); ADB đã tắt thì nói rõ cách bật lại",
+   "- Remote TCL: các nút app của hãng không còn cùng mở một app",
+   "- Home sạch lên bản mới nhất của Clean Your TV: gán nút remote mở thư viện app, mở app khởi động cả khi bật màn hình, đổi màu quầng sáng ngay cho tivi yếu"
+  ],
+  "en": [
+   "- Out of storage: the app says how much is free and how much is needed, with a Clear cache button (app caches only, no data lost) that then carries on installing. Before, the install hung for 2 minutes and blamed Play Protect",
+   "- The TV info screen shows free storage",
+   "- Applying a look no longer force-stops the clean Home: avoids a crash that restarted TCL Android 11 TVs; TCL TVs let the clean Home start again after boot",
+   "- CleanTV on the TV: leave to try Home and ADB turns off after 20 minutes (was 1); if it already did, the app says how to turn it back on",
+   "- TCL remotes: the brand app buttons no longer all open the same app",
+   "- The clean Home is on the latest Clean Your TV: a remote button can open the App library, the start-up app can open when the screen comes on, instant glow colour for slow TVs"
+  ]
+ },
+ {
   "ban": "4.0",
   "ngay": "2026-10-31",
   "vi": [

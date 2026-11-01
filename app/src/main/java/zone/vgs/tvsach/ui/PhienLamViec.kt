@@ -52,6 +52,8 @@ const val DOCK_TOI_DA = 8
 const val HANG_GIUA = Int.MIN_VALUE
 /** Số ô kênh tối đa (link_tiles): 12 lên 16 cho người gộp kênh VTVgo + FPT Play (góp ý tnhoang97 28/10/2026). */
 const val KENH_TOI_DA = 16
+/** KEY_UNKNOWN của Linux (input-event-codes.h): không phải mã riêng của một nút. */
+const val SCAN_KHONG_RO = 240
 /** Số ảnh thêm tối đa sau ảnh riêng chính trong bộ ảnh tự đổi (cả bộ 20 ảnh, gửi qua ADB vẫn nhanh). */
 const val ANH_XOAY_TOI_DA = 19
 
@@ -111,6 +113,10 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     /** Máy đích không khai là tivi (laTivi): chặn dọn / đổi Home cho tới khi người dùng xác nhận đúng là tivi. */
     /** Múi giờ tivi khác điện thoại (giờ trên Home sạch lệch), "" khi khớp. 3.0.1. */
     var muiGioLech by mutableStateOf("")
+    /** Bộ nhớ tivi (byte trống, tổng byte), đọc lúc kết nối; null khi không đọc được. */
+    var boNho by mutableStateOf<Pair<Long, Long>?>(null)
+    /** Lỗi đang hiện là do tivi hết bộ nhớ: thanh lỗi có nút "Dọn bộ nhớ đệm". */
+    var canDonBoNho by mutableStateOf(false)
     val muiGioDienThoai: String get() = java.util.TimeZone.getDefault().id
     fun datGioNhuDienThoai() = chay(t("Đang đặt giờ cho tivi…", "Setting the TV's time zone…")) {
         val sau = io { tv.datMuiGio(muiGioDienThoai) }
@@ -219,7 +225,9 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             // OK, mũi tên, Back không gán được: gán OK cho CH Play là kẹt luôn tivi (ngocdaikimoanh 31/10). Launcher cũng bỏ qua.
             if (p.first in PHIM_DIEU_HUONG) error(t("Nút OK, mũi tên và Back dùng để điều khiển tivi nên không gán cho app được. Bấm Dò rồi chọn nút khác.",
                 "OK, the arrows and Back drive the TV, so they can't open an app. Tap Detect and pick another button."))
-            phimVuaDo = p
+            // Scancode 240 là KEY_UNKNOWN của Linux: remote TCL gửi mọi nút app (YouTube, FPT Play…) cùng mã này, gán
+            // theo nó thì một nút kéo theo cả loạt (hp4440s, TCL G08 01/11/2026). Khi đó chỉ dùng keycode.
+            phimVuaDo = if (p.second == SCAN_KHONG_RO && p.first > 0) p.first to 0 else p
         } finally { dangDoPhim = false }
     }
     fun ganPhim(goi: String) {
@@ -543,7 +551,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
 
     private fun chay(viec: String, khoi: suspend () -> Unit) {
         if (dangBan) return
-        dangBan = true; loi = ""; thongBao = viec
+        dangBan = true; loi = ""; canDonBoNho = false; thongBao = viec
         viewModelScope.launch {
             try { khoi() } catch (e: Throwable) {
                 android.util.Log.w("CleanTV", viec, e)
@@ -685,6 +693,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         thongTin = info; getprop = gp
         khongPhaiTivi = !io { tv.laTivi() }
         muiGioLech = io { tv.muiGioTv() }.takeIf { lechMuiGio(it) } ?: ""
+        boNho = io { tv.boNhoTrong() }
         xacNhanLaTivi = false
         val tt = io { tv.docTrangThai() }
         trangThai = tt
@@ -1100,7 +1109,26 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (ds.isEmpty()) nangCao.remove("hidden_apps") else nangCao["hidden_apps"] = ds.joinToString(", ")
     }
 
-    fun caiHomeSach() = chay(t("Đang cài Home sạch…", "Installing the clean Home…")) {
+    fun caiHomeSach() = chay(t("Đang cài Home sạch…", "Installing the clean Home…")) { caiHomeSachBen() }
+
+    /** Xoá cache các app trên tivi khi cài Home sạch hỏng vì hết bộ nhớ, đủ chỗ thì cài lại luôn. */
+    fun donBoNhoDem() = chay(t("Đang dọn bộ nhớ đệm trên tivi…", "Clearing caches on the TV…")) {
+        val truoc = boNho?.first ?: io { tv.boNhoTrong() }?.first
+        val sau = io { tv.donBoNhoDem() }
+        boNho = sau
+        val trong = sau?.first
+        val can = sau?.let { ThaoTacTv.canTrong(it.second) }
+        if (trong != null && can != null && trong < can) {
+            canDonBoNho = false
+            error(t("Dọn xong vẫn chỉ còn ${ThaoTacTv.mb(trong)} trống, chưa đủ ${ThaoTacTv.mb(can)} để cài Home sạch. Vào Cài đặt > Ứng dụng trên tivi, gỡ bớt app không dùng rồi thử lại.",
+                "Still only ${ThaoTacTv.mb(trong)} free after clearing, short of the ${ThaoTacTv.mb(can)} the clean Home needs. Uninstall unused apps in the TV's Settings > Apps, then try again."))
+        }
+        val duoc = if (truoc != null && trong != null && trong > truoc) t(" (lấy lại ${ThaoTacTv.mb(trong - truoc)})", " (freed ${ThaoTacTv.mb(trong - truoc)})") else ""
+        thongBao = t("Đã dọn bộ nhớ đệm$duoc. Đang cài Home sạch…", "Caches cleared$duoc. Installing the clean Home…")
+        if (daCoHomeSach) apDungThemeBen() else caiHomeSachBen()
+    }
+
+    private suspend fun caiHomeSachBen() {
         if (laAndroidCu) error(t("Home sạch cần Android 8 trở lên, tivi/hộp này là Android ${thongTin?.android}. CleanTV chỉ dọn được quảng cáo và app rác trên máy này.", "The clean Home needs Android 8 or later; this TV/box runs Android ${thongTin?.android}. CleanTV can only clean ads and junk apps here."))
         if (laFireTv) error(t("Fire TV không cho app nào thay màn Home (Amazon khoá). CleanTV chỉ dọn được quảng cáo và app rác trên Fire TV.", "Fire TV does not let any app replace Home (Amazon locks it). On Fire TV CleanTV can only clean ads and junk apps."))
         val sl = saoLuu ?: io { tv.damBaoSaoLuu(thongTin!!, getprop, ip) }.also { saoLuu = it }
@@ -1112,7 +1140,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         napAnhKenh()
         val loiCai = io { tv.caiLauncher(apk, sl, cauHinh, anh, bo, nutInput, canDichVuPhim, { zone.vgs.tvsach.CapNhat.moAsset(ctx, "tvhome-xiaomi.apk").readBytes() }) { s -> ghiTuIo(s) } }
         // caiLauncher báo lỗi là đã tự trả Home gốc: huỷ canh gác trên tivi.
-        if (loiCai != null) { io { tv.boGac() }; error(loiCai) }
+        if (loiCai != null) { io { tv.boGac() }; canDonBoNho = tv.thieuBoNho; error(loiCai) }
         if (nutDangPhat) io { tv.choPhepDangPhat() }
         if (dnsChanQc) io { tv.batDnsChanQc(sl) }
         if (nutManCho) io { tv.chuanBiManCho(sl) }
@@ -1459,15 +1487,18 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     }
 
     /** Đổi theme / dock cho tivi đã có Home sạch. */
-    fun apDungTheme() = chay(t("Đang đổi giao diện…", "Applying the theme…")) {
+    fun apDungTheme() = chay(t("Đang đổi giao diện…", "Applying the theme…")) { apDungThemeBen() }
+
+    private suspend fun apDungThemeBen() {
         val json = cauHinhHome()
         val anh = anhNenTheme()
         napAnhKenh()
         // Cài đè launcher đi kèm app (bản mới có dòng thời tiết…), giữ dữ liệu và dịch vụ trợ năng.
         thongBao = t("Đang cập nhật Home sạch…", "Updating the clean Home…")
         if (!io { tv.capNhatLauncher(zone.vgs.tvsach.CapNhat.moAsset(ctx, tv.apkHome).readBytes()) }) {
+            if (tv.thieuBoNho) { canDonBoNho = true; loi = tv.baoThieuBoNho(io { tv.boNhoTrong() }); return }
             loi = t("Không cập nhật được Home sạch trên tivi, giao diện mới sẽ không hiện đủ. Thử lại hoặc gửi góp ý kèm hãng, model.", "Couldn't update the clean Home on the TV, so the new look won't fully show. Try again or send feedback with the brand and model.")
-            return@chay
+            return
         }
         if (anh != null) thongBao = t("Đang gửi ảnh nền (${anh.size / 1024} KB)…", "Sending the wallpaper (${anh.size / 1024} KB)…")
         val bo = boAnhTheme()
@@ -1517,10 +1548,17 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { runCatching { io { tv.giuKetNoi() } } }
     }
 
+    /**
+     * Bao lâu sau khi rời màn Xong thì tivi tự tắt ADB. Chạy ngay trên tivi thì 20 phút (issue #6, HoangTran0410,
+     * 01/11/2026): màn Xong bảo bấm Home xem thử, thử YouTube/HDMI — đi thử là rời app, 60 giây là ADB tắt trước khi kịp
+     * quay lại chọn Giữ / Tắt. Trên điện thoại rời app là thôi dùng, giữ 60 giây.
+     */
+    val phutTuTatAdb: Int get() = if (zone.vgs.tvsach.ManHinh.laTv) 20 else 1
+
     fun henTuTatAdb() {
         if (giuAdb || man != Man.XONG || dangBan) return
         daHenTatAdb = true
-        viewModelScope.launch { runCatching { io { tv.henTatAdbTrenTv(60) } }.onFailure { daHenTatAdb = false } }
+        viewModelScope.launch { runCatching { io { tv.henTatAdbTrenTv(phutTuTatAdb * 60) } }.onFailure { daHenTatAdb = false } }
     }
 
     fun huyTuTatAdb() {
@@ -1528,13 +1566,23 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         daHenTatAdb = false
         viewModelScope.launch {
             // Huỷ không được (tivi đã tắt ADB, kết nối mất): coi như đã tự tắt.
-            if (runCatching { io { tv.huyTatAdbTrenTv() } }.isFailure) {
-                runCatching { io { adb.disconnect() } }
-                datLai()
-                daTuTatAdb = true
-                man = Man.CHINH
-            }
+            if (!runCatching { io { tv.huyTatAdbTrenTv() } }.getOrDefault(false)) baoDaTuTatAdb()
         }
+    }
+
+    /** Bấm "Giữ ADB": thử lại kết nối trước, ADB đã tắt thì nói rõ thay vì giả như giữ được (issue #6). */
+    fun chonGiuAdb(sau: () -> Unit = {}) {
+        giuAdb = true
+        viewModelScope.launch {
+            if (runCatching { io { tv.giuKetNoi() } }.getOrDefault(false)) sau() else baoDaTuTatAdb()
+        }
+    }
+
+    private suspend fun baoDaTuTatAdb() {
+        runCatching { io { adb.disconnect() } }
+        datLai()
+        daTuTatAdb = true
+        man = Man.CHINH
     }
 
     fun tatAdbVaKetThuc() = chay(t("Đang tắt ADB trên tivi…", "Turning ADB off on the TV…")) {

@@ -394,5 +394,13 @@
  "back_opens_clock": {
   "ten": "Nút Back ở Home mở đồng hồ",
   "moTa": "Bấm Back khi đang ở Home thì mở màn hình chờ đồng hồ thay vì không làm gì. Back trong app và Cài đặt vẫn như cũ; bấm phím bất kỳ để về Home. Mặc định tắt."
+ },
+ "open_on_start_on_wake": {
+  "ten": "Mở app khởi động cả khi bật màn hình",
+  "moTa": "Đi cùng \"chọn app mở khi bật tivi\": app đã chọn cũng mở mỗi lần màn hình sáng lại, cho tivi mà remote chỉ cho ngủ nhẹ chứ không khởi động lại. App mở đè lên mọi thứ đang hiện, kể cả cổng HDMI, và vẫn chờ mạng nếu bật chờ mạng. Mặc định tắt."
+ },
+ "glow_snap": {
+  "ten": "Đổi màu quầng sáng ngay",
+  "moTa": "Quầng sáng nền đổi sang màu app kế tiếp trong một khung hình thay vì mờ dần rồi hiện lại. Mỗi khung chuyển màu vẽ lại cả màn, nên tivi chip đồ hoạ yếu sẽ mượt hơn khi bật. Mặc định tắt."
  }
 }

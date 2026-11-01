@@ -1,5 +1,6 @@
 package zone.vgs.tvsach.ui
 
+import zone.vgs.tvsach.adb.ThaoTacTv
 import zone.vgs.tvsach.dulieu.KeHoach
 import zone.vgs.tvsach.dulieu.XaPhuong
 import androidx.compose.foundation.layout.Row
@@ -280,7 +281,10 @@ private fun ThanhTrangThai(vm: PhienLamViec) {
         if (laLoi) Icon(Icons.Rounded.ErrorOutline, null, tint = Hong)
         else CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
         Spacer(Modifier.width(12.dp))
-        Text(if (laLoi) vm.loi else vm.thongBao, Modifier.weight(1f), fontSize = 14.sp)
+        Column(Modifier.weight(1f)) {
+            Text(if (laLoi) vm.loi else vm.thongBao, fontSize = 14.sp)
+            if (laLoi && vm.canDonBoNho) NutPhu(t("Dọn bộ nhớ đệm", "Clear cache"), Icons.Rounded.CleaningServices) { vm.donBoNhoDem() }
+        }
         if (laLoi && vm.man == Man.KET_NOI) TextButton(onClick = { vm.loi = ""; vm.moHuongDan() }) { Text(t("Hướng dẫn", "Guide")) }
         if (laLoi) TextButton(onClick = { vm.loi = "" }) { Text(t("Ẩn", "Hide")) }
     }
@@ -416,7 +420,7 @@ private fun ManChinh(vm: PhienLamViec) = Cuon {
     if (vm.daTuTatAdb) Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Tim.copy(alpha = 0.12f)).padding(14.dp),
         verticalAlignment = Alignment.CenterVertically) {
         Icon(Icons.Rounded.Lock, null, tint = Hong); Spacer(Modifier.width(10.dp))
-        Text(t("Đã tự tắt ADB trên tivi khi bạn rời app. Lần sau dùng lại thì bật Gỡ lỗi USB trên tivi.", "ADB was turned off on the TV when you left the app. Next time, turn USB debugging on again on the TV."), fontSize = 13.sp)
+        Text(t("ADB trên tivi đã tự tắt vì bạn rời app quá ${vm.phutTuTatAdb} phút. Muốn chỉnh tiếp thì vào Tuỳ chọn nhà phát triển trên tivi, bật lại Gỡ lỗi USB rồi kết nối lại.", "ADB on the TV turned itself off because you left the app for over ${vm.phutTuTatAdb} min. To keep tweaking, turn USB debugging back on in the TV's Developer options and connect again."), fontSize = 13.sp)
     }
     vm.banMoi?.let { b ->
         Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Tim.copy(alpha = 0.18f)).padding(14.dp),
@@ -698,6 +702,7 @@ private fun ManThongTin(vm: PhienLamViec) = Cuon {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Chip("Android ${info.android}")
                 vm.trangThai?.let { Chip(t("${it.caiDat.size} gói", "${it.caiDat.size} packages")) }
+                vm.boNho?.let { (trong, tong) -> Chip(t("Trống ${ThaoTacTv.mb(trong)}", "${ThaoTacTv.mb(trong)} free"), if (trong < ThaoTacTv.canTrong(tong)) Hong else ChuPhu) }
             }
         }
     }
@@ -1498,7 +1503,7 @@ private fun Hang(chu: String, phu: String, bat: Boolean, doi: (Boolean) -> Unit)
 
 @Composable
 private fun ManXong(vm: PhienLamViec) = Cuon {
-    // Rời app khi đang ở màn này: hẹn tự tắt ADB sau 60 giây; quay lại trước đó thì huỷ.
+    // Rời app khi đang ở màn này: hẹn tự tắt ADB (vm.phutTuTatAdb); quay lại trước đó thì huỷ.
     val vongDoi = androidx.compose.ui.platform.LocalLifecycleOwner.current
     DisposableEffect(vongDoi) {
         val nghe = androidx.lifecycle.LifecycleEventObserver { _, e ->
@@ -1527,10 +1532,11 @@ private fun ManXong(vm: PhienLamViec) = Cuon {
             Phu(t("Để gỡ lỗi bật thì ai cùng mạng Wi-Fi cũng điều khiển được tivi. Tắt đi thì lần sau muốn chỉnh giao diện phải bật lại gỡ lỗi trên tivi.",
                 "With debugging on, anyone on your Wi-Fi can control the TV. Turn it off and you must enable debugging on the TV again to change anything later."))
             NutChinh(t("Tắt ADB (an toàn hơn)", "Turn ADB off (safer)"), enabled = !vm.dangBan, icon = Icons.Rounded.Lock) { vm.tatAdbVaKetThuc() }
-            NutPhu(t("Giữ ADB để chỉnh tiếp", "Keep ADB on to tweak later"), Icons.Rounded.LockOpen) { vm.giuAdb = true }
+            NutPhu(t("Giữ ADB để chỉnh tiếp", "Keep ADB on to tweak later"), Icons.Rounded.LockOpen) { vm.chonGiuAdb() }
             // Remote trên điện thoại đi qua ADB: chọn nó là giữ ADB.
-            if (!zone.vgs.tvsach.ManHinh.laTv) NutPhu(t("Giữ ADB và dùng remote trên điện thoại", "Keep ADB and use the phone remote"), Icons.Rounded.SettingsRemote) { vm.giuAdb = true; vm.moRemote() }
-            Phu(t("Chưa chọn mà rời app quá 1 phút thì tivi tự tắt ADB.", "Leave the app for over a minute without choosing and the TV turns ADB off itself."))
+            if (!zone.vgs.tvsach.ManHinh.laTv) NutPhu(t("Giữ ADB và dùng remote trên điện thoại", "Keep ADB and use the phone remote"), Icons.Rounded.SettingsRemote) { vm.chonGiuAdb { vm.moRemote() } }
+            val phut = vm.phutTuTatAdb
+            Phu(t("Chưa chọn mà rời app quá $phut phút thì tivi tự tắt ADB.", if (phut == 1) "Leave the app for over a minute without choosing and the TV turns ADB off itself." else "Leave the app for over $phut minutes without choosing and the TV turns ADB off itself."))
         }
     }
     The(t("Trước khi về", "Before you leave"), Icons.Rounded.Checklist) {

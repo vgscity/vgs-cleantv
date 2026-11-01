@@ -98,7 +98,7 @@ index 00000000..b1477aae
 +FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 +OTHER DEALINGS IN THE FONT SOFTWARE.
 diff --git a/launcher/app/src/main/AndroidManifest.xml b/launcher/app/src/main/AndroidManifest.xml
-index b336792d..0a1d07b5 100644
+index ca18afa9..39831958 100644
 --- a/launcher/app/src/main/AndroidManifest.xml
 +++ b/launcher/app/src/main/AndroidManifest.xml
 @@ -8,6 +8,11 @@
@@ -134,7 +134,7 @@ index b336792d..0a1d07b5 100644
      <application
          android:label="@string/app_name"
          android:icon="@mipmap/ic_launcher"
-@@ -194,6 +206,17 @@
+@@ -197,6 +209,17 @@
  
          <!-- Screensaver: pick it in Settings, or `settings put secure screensaver_components
               com.gathin.tvhome/.ClockDream` over adb. -->
@@ -152,7 +152,7 @@ index b336792d..0a1d07b5 100644
          <service
              android:name=".ClockDream"
              android:label="@string/dream_name"
-@@ -228,6 +251,16 @@
+@@ -231,6 +254,16 @@
                  <action android:name="android.service.notification.NotificationListenerService" />
              </intent-filter>
          </service>
@@ -169,7 +169,7 @@ index b336792d..0a1d07b5 100644
          <receiver
              android:name=".GuardConfig"
              android:exported="true"
-@@ -249,5 +282,7 @@
+@@ -252,5 +285,7 @@
                  android:name="android.accessibilityservice"
                  android:resource="@xml/input_key_service" />
          </service>
@@ -178,7 +178,7 @@ index b336792d..0a1d07b5 100644
      </application>
  </manifest>
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
-index e753dc3d..b92d5ec7 100644
+index 555fd4c6..2fef1cb6 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
 @@ -66,7 +66,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -261,7 +261,7 @@ index e753dc3d..b92d5ec7 100644
              iconLp.bottomMargin = 0;
              icon.setLayoutParams(iconLp);
          } else if (h < Math.round(DESIGN_H_DP * density)) {
-@@ -491,7 +509,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -492,7 +510,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          // nothing on every frame; keep it under banners with transparent parts and under icon tiles.
          h.card.setBackground(e.banner != null && e.banner.getOpacity() == PixelFormat.OPAQUE ? null : h.cardBackground);
          if (uniformTiles && e.banner == null) {
@@ -270,7 +270,7 @@ index e753dc3d..b92d5ec7 100644
              h.card.setBackground(new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, e.backdrop));
          }
          if (e.banner != null) {
-@@ -505,7 +523,17 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -506,7 +524,17 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
              h.icon.setImageDrawable(e.icon);
              h.icon.setVisibility(View.VISIBLE);
              h.label.setText(e.label);
@@ -289,7 +289,7 @@ index e753dc3d..b92d5ec7 100644
          }
          h.card.setOnClickListener(v -> launch(e));
          h.card.setOnLongClickListener(v -> {
-@@ -514,7 +542,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -515,7 +543,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                  if (pos != RecyclerView.NO_POSITION) listener.onTileLongPress(pos, v);
                  return true;
              }
@@ -298,9 +298,9 @@ index e753dc3d..b92d5ec7 100644
              i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
              try {
                  ctx.startActivity(i);
-@@ -526,6 +554,10 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
- 
+@@ -528,6 +556,10 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
      /** Opens the tile's activity by explicit component, with no extras: a card can name nothing else. */
+     @SuppressWarnings("deprecation")
      private void launch(Entry e) {
 +        if (e.kind == Entry.LINK) {
 +            launchLink(e);
@@ -309,7 +309,7 @@ index e753dc3d..b92d5ec7 100644
          if (e.kind == Entry.HOME_SETTINGS) {
              ctx.startActivity(new Intent(ctx, HomeSettingsActivity.class)
                      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-@@ -560,6 +592,29 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -562,6 +594,29 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          }
      }
  
@@ -339,7 +339,7 @@ index e753dc3d..b92d5ec7 100644
      @Override
      public int getItemCount() {
          return items.size() + (showLibrary ? 1 : 0);
-@@ -689,6 +744,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -691,6 +746,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
  
      /** Share of the tile height the icon takes in uniform_tiles mode (onCreateViewHolder). */
      private static final float ICON_SHARE = 0.62f;
@@ -349,7 +349,7 @@ index e753dc3d..b92d5ec7 100644
  
      /**
       * The colour covering most of an icon, for a card that should read as that app: a small saturated badge
-@@ -739,8 +797,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -741,8 +799,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
       * square), the card takes that colour, so the mark reads as filling the tile as on tvOS. Otherwise a
       * gradient of the icon's main colour, deepened so the mark stands out. The card clips the corners.
       */
@@ -360,7 +360,7 @@ index e753dc3d..b92d5ec7 100644
          if (plate != null) return plate;
          float[] hsv = new float[3];
          Color.colorToHSV(fallback, hsv);
-@@ -757,7 +815,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -759,7 +817,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
       * card's top and bottom edges so the mark reads as filling the tile; null when the icon has no
       * opaque plate (a bare mark on transparency).
       */
@@ -369,7 +369,7 @@ index e753dc3d..b92d5ec7 100644
          if (live == null) return null;
          Drawable d = live.getConstantState() != null ? live.getConstantState().newDrawable().mutate() : live;
          Rect saved = new Rect(d.getBounds());
-@@ -786,8 +844,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -788,8 +846,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          if (a == 0 || b == 0) return null;
          // The sampled rows sit at these heights of the tile; extend the line through them to its edges. A row
          // taken further in sits on artwork-side plate, so its slope is less certain: cap how far it reaches.
@@ -380,7 +380,7 @@ index e753dc3d..b92d5ec7 100644
          float t0 = -yA / (yB - yA), t1 = (1f - yA) / (yB - yA);
          if (topRow != 7 || bottomRow != n - 8) {
              t0 = Math.max(-0.35f, t0);
-@@ -847,6 +905,23 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -849,6 +907,23 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          return Math.max(0, Math.min(255, Math.round(v)));
      }
  
@@ -697,7 +697,7 @@ index dcae93ad..c0afe8a2 100644
      private List<File> playable() {
          if (moods.isEmpty()) return rotation;
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/Config.java b/launcher/app/src/main/java/com/gathin/tvhome/Config.java
-index 86ccef2e..0a152ca0 100644
+index a5541ffa..3c69d4e5 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/Config.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/Config.java
 @@ -5,6 +5,7 @@ import android.content.SharedPreferences;
@@ -708,7 +708,7 @@ index 86ccef2e..0a152ca0 100644
  import android.util.Log;
  
  import org.json.JSONArray;
-@@ -551,7 +552,8 @@ final class Config {
+@@ -559,7 +560,8 @@ final class Config {
              inputAction = string(json, "input_action", inputAction);
              inputSources = stringList(json, "input_sources", inputSources);
              inputUriScheme = string(json, "input_uri_scheme", inputUriScheme).trim();
@@ -718,7 +718,7 @@ index 86ccef2e..0a152ca0 100644
              rowsBelow = integer(json, "rows_below_dock", rowsBelow, 0, 3);
              animations = bool(json, "animations", animations);
              advancedEffects = bool(json, "advanced_effects", advancedEffects);
-@@ -644,7 +646,8 @@ final class Config {
+@@ -654,7 +656,8 @@ final class Config {
          // current theme without clearing choices from an older launcher version.
          SharedPreferences choices = ctx.getSharedPreferences(SETTINGS_NAME, Context.MODE_PRIVATE);
          // Unmounted storage looks like a theme reset; compare only once the file is readable.
@@ -728,7 +728,7 @@ index 86ccef2e..0a152ca0 100644
          int chosenColumns = choices.getInt("columns", columns);
          if (chosenColumns >= 4 && chosenColumns <= 7) columns = chosenColumns;
          int chosenRows = choices.getInt(ROWS_BELOW_DOCK_KEY, rowsBelow);
-@@ -779,10 +782,28 @@ final class Config {
+@@ -789,10 +792,28 @@ final class Config {
       * start before the card is mounted (seen at every boot on a Xiaomi MiTV-MTEQ0), and without the copy it comes
       * up with the built-in dock order. A missing file on mounted storage still means no overlay.
       */
@@ -758,7 +758,7 @@ index 86ccef2e..0a152ca0 100644
          if (json == null) {
              copy.delete();
          } else {
-@@ -795,6 +816,18 @@ final class Config {
+@@ -805,6 +826,18 @@ final class Config {
          return json;
      }
  
@@ -778,7 +778,7 @@ index 86ccef2e..0a152ca0 100644
          if (file == null || !file.isFile()) return null;
          if (file.length() > 64 * 1024) {
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
-index 5f0c136e..10da02f0 100644
+index 5f0c136e..88d4cd05 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 @@ -71,6 +71,12 @@ public class HomeKeyService extends AccessibilityService {
@@ -794,7 +794,7 @@ index 5f0c136e..10da02f0 100644
      /** power_on_home: the Live TV package to send back to Home, empty when off; armed until this uptime or a key. */
      private String powerOnLiveTv = "";
      private long powerOnUntil;
-@@ -80,10 +86,78 @@ public class HomeKeyService extends AccessibilityService {
+@@ -80,10 +86,86 @@ public class HomeKeyService extends AccessibilityService {
      private Map<Integer, String> frontAppKeys = Collections.emptyMap();
      private Map<Integer, String> frontAppScancodes = Collections.emptyMap();
      private String frontPackage = "";
@@ -863,6 +863,14 @@ index 5f0c136e..10da02f0 100644
 +     *  Only the shell holds DUMP, so no app on the TV can type through this. Result code 1 when the text went in. */
 +    static final String ACTION_TYPE_TEXT = "zone.vgs.cleantv.TYPE_TEXT";
 +    private BroadcastReceiver typeReceiver;
++    /**
++     * CleanTV/VGS: reload_config, sent by CleanTV after it writes a new config.json (am broadcast -a
++     * zone.vgs.cleantv.RELOAD_CONFIG -p <package>). CleanTV used to force-stop Home to apply a theme; a force stop while
++     * this service is bound crashed system_server on TCL G06, Android 11 (onNullBinding → "Service not registered",
++     * vgscity/vgs-cleantv#5). Now Home's activity is recreated and the key services read the file again here.
++     */
++    static final String ACTION_RELOAD_CONFIG = "zone.vgs.cleantv.RELOAD_CONFIG";
++    private BroadcastReceiver reloadReceiver;
 +
      /** power_on_home_always: Home at every power-on, not only over Live TV. */
      private boolean powerOnAlways;
@@ -873,7 +881,7 @@ index 5f0c136e..10da02f0 100644
      /** Stops key filtering while a game controller is connected; null unless gamepad_passthrough and key_filter, or before the unlock. */
      private GamepadPassthrough gamepads;
      /** Screen-off receiver while guard_off_in_standby is set; null otherwise. */
-@@ -97,6 +171,38 @@ public class HomeKeyService extends AccessibilityService {
+@@ -97,6 +179,50 @@ public class HomeKeyService extends AccessibilityService {
      protected void onServiceConnected() {
          super.onServiceConnected();
          running = this;
@@ -909,10 +917,22 @@ index 5f0c136e..10da02f0 100644
 +        };
 +        if (Build.VERSION.SDK_INT >= 33) registerReceiver(typeReceiver, new IntentFilter(ACTION_TYPE_TEXT), android.Manifest.permission.DUMP, null, Context.RECEIVER_EXPORTED);
 +        else registerReceiver(typeReceiver, new IntentFilter(ACTION_TYPE_TEXT), android.Manifest.permission.DUMP, null);
++        reloadReceiver = new BroadcastReceiver() {
++            @Override
++            public void onReceive(Context context, Intent intent) {
++                // Before the unlock the file is unreadable; the unlock receiver loads it then.
++                if (unlockReceiver != null) return;
++                boolean volume = consumeVolumeKeys;
++                loadConfig();
++                if (volume && !consumeVolumeKeys) VolumeKeys.stop();
++            }
++        };
++        if (Build.VERSION.SDK_INT >= 33) registerReceiver(reloadReceiver, new IntentFilter(ACTION_RELOAD_CONFIG), android.Manifest.permission.DUMP, null, Context.RECEIVER_EXPORTED);
++        else registerReceiver(reloadReceiver, new IntentFilter(ACTION_RELOAD_CONFIG), android.Manifest.permission.DUMP, null);
          settingsScancodes = getResources().getIntArray(R.array.settings_key_scancodes);
          // The service is directBootAware: Android 11 skips a service that is not while the user is still
          // locked at boot, writes accessibility_enabled=0 and, on TCL G03 firmware, never binds it after the
-@@ -141,6 +247,7 @@ public class HomeKeyService extends AccessibilityService {
+@@ -141,6 +267,7 @@ public class HomeKeyService extends AccessibilityService {
          RemoteKeys.release(this);
          stopWaitingForUnlock();
          if (screenOnReceiver != null) unregisterReceiver(screenOnReceiver);
@@ -920,7 +940,7 @@ index 5f0c136e..10da02f0 100644
          if (standbyExit != null) {
              try {
                  unregisterReceiver(standbyExit);
-@@ -182,7 +289,11 @@ public class HomeKeyService extends AccessibilityService {
+@@ -182,7 +309,11 @@ public class HomeKeyService extends AccessibilityService {
          GuardKeep.stepOut(this);
      }
  
@@ -932,7 +952,7 @@ index 5f0c136e..10da02f0 100644
          // Keycodes and the panel choice can also come from a theme; theme.sh restarts this service.
          Config config = Config.load(this);
          // restore_key_services: note that this helper runs, so Home can put it back after a force stop. Here, not
-@@ -214,6 +325,12 @@ public class HomeKeyService extends AccessibilityService {
+@@ -214,6 +345,12 @@ public class HomeKeyService extends AccessibilityService {
          powerOnLiveTv = config.powerOnHome && !config.bootToLiveTv && !config.liveTvPackage.equals(openOnStart)
                  ? config.liveTvPackage : "";
          powerOnAlways = config.powerOnHomeAlways && !config.bootToLiveTv && openOnStart.isEmpty();
@@ -945,7 +965,7 @@ index 5f0c136e..10da02f0 100644
          if (!powerOnLiveTv.isEmpty() || powerOnAlways) {
              armPowerOnHome();
          } else if (screenOnReceiver != null) {
-@@ -228,6 +345,7 @@ public class HomeKeyService extends AccessibilityService {
+@@ -228,6 +365,7 @@ public class HomeKeyService extends AccessibilityService {
              setServiceInfo(info);
          }
          if (!stockHome.isEmpty() || !powerOnLiveTv.isEmpty()) probeAtBoot();
@@ -953,7 +973,18 @@ index 5f0c136e..10da02f0 100644
          armStandbyExit();
          holdAppKeys = RemoteKeys.parseHoldAppKeys(config.appKeys);
          holdAppScancodes = RemoteKeys.parseHoldAppScancodes(config.appKeys);
-@@ -254,6 +372,21 @@ public class HomeKeyService extends AccessibilityService {
+@@ -235,6 +373,10 @@ public class HomeKeyService extends AccessibilityService {
+         if (config.gamepadPassthrough && config.keyFilter && gamepads == null) {
+             gamepads = new GamepadPassthrough(this);
+             gamepads.start();
++        } else if (gamepads != null && !(config.gamepadPassthrough && config.keyFilter)) {
++            // CleanTV/VGS: a reload (reload_config) can turn it off.
++            gamepads.stop();
++            gamepads = null;
+         }
+     }
+ 
+@@ -254,6 +396,21 @@ public class HomeKeyService extends AccessibilityService {
  
      @Override
      protected boolean onKeyEvent(KeyEvent event) {
@@ -975,7 +1006,7 @@ index 5f0c136e..10da02f0 100644
          // power_on_home: the first key after power-on hands the TV to the user (power and wake keys don't count).
          if (powerOnUntil != 0 && event.getAction() == KeyEvent.ACTION_DOWN
                  && event.getKeyCode() != KeyEvent.KEYCODE_POWER && event.getKeyCode() != KeyEvent.KEYCODE_WAKEUP) {
-@@ -287,7 +420,9 @@ public class HomeKeyService extends AccessibilityService {
+@@ -287,7 +444,9 @@ public class HomeKeyService extends AccessibilityService {
              redirectHomeKey(event);
              return false;
          }
@@ -986,16 +1017,17 @@ index 5f0c136e..10da02f0 100644
          if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) openHome();
          return true;
      }
-@@ -296,6 +431,8 @@ public class HomeKeyService extends AccessibilityService {
+@@ -296,6 +455,9 @@ public class HomeKeyService extends AccessibilityService {
      @Override
      public boolean onUnbind(Intent intent) {
          RemoteKeys.release(this);
 +        if (learnReceiver != null) { try { unregisterReceiver(learnReceiver); } catch (IllegalArgumentException ignored) { } learnReceiver = null; }
 +        if (typeReceiver != null) { try { unregisterReceiver(typeReceiver); } catch (IllegalArgumentException ignored) { } typeReceiver = null; }
++        if (reloadReceiver != null) { try { unregisterReceiver(reloadReceiver); } catch (IllegalArgumentException ignored) { } reloadReceiver = null; }
          if (repairRecord && !steppingOut) ServiceRepair.disconnected(this, getClass());
          return super.onUnbind(intent);
      }
-@@ -321,7 +458,14 @@ public class HomeKeyService extends AccessibilityService {
+@@ -321,7 +483,14 @@ public class HomeKeyService extends AccessibilityService {
          }
          // stock_home_redirect: the firmware turned the stock launcher back on and its home screen came up.
          CharSequence cls = event.getClassName();
@@ -1011,7 +1043,7 @@ index 5f0c136e..10da02f0 100644
      }
  
      /** How long power_on_home stays armed after the screen turns on without a reboot. */
-@@ -349,7 +493,18 @@ public class HomeKeyService extends AccessibilityService {
+@@ -349,7 +518,18 @@ public class HomeKeyService extends AccessibilityService {
  
      /** power_on_home_always: Home, unless a key was pressed since the screen came on (the user has the TV). */
      private void homeAtPowerOn() {
@@ -1031,7 +1063,7 @@ index 5f0c136e..10da02f0 100644
      }
  
      static boolean stillArmed(long now, long armedUntil) {
-@@ -390,6 +545,39 @@ public class HomeKeyService extends AccessibilityService {
+@@ -390,6 +570,39 @@ public class HomeKeyService extends AccessibilityService {
          }
      }
  
@@ -1071,7 +1103,7 @@ index 5f0c136e..10da02f0 100644
      static boolean firstBindAfterBoot(int boot, int lastBoot, long uptimeMs) {
          return boot >= 0 && boot != lastBoot && uptimeMs < BOOT_WINDOW_MS;
      }
-@@ -415,6 +603,8 @@ public class HomeKeyService extends AccessibilityService {
+@@ -415,6 +628,8 @@ public class HomeKeyService extends AccessibilityService {
      }
  
      private void openHome() {
@@ -1080,6 +1112,56 @@ index 5f0c136e..10da02f0 100644
          Intent open = stockHomeStays() ? new Intent(this, MainActivity.class)
                  : new Intent(Intent.ACTION_MAIN).setPackage(getPackageName());
          startActivity(open.addCategory(Intent.CATEGORY_HOME)
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/InputKeyService.java b/launcher/app/src/main/java/com/gathin/tvhome/InputKeyService.java
+index 7f8eac11..59dd6df3 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/InputKeyService.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/InputKeyService.java
+@@ -32,9 +32,27 @@ public class InputKeyService extends AccessibilityService {
+     /** Stops key filtering while a game controller is connected; null unless gamepad_passthrough and key_filter. */
+     private GamepadPassthrough gamepads;
+ 
++    /** CleanTV/VGS: reload_config, as in HomeKeyService (CleanTV no longer force-stops Home to apply a theme). */
++    private android.content.BroadcastReceiver reloadReceiver;
++
+     @Override
+     protected void onServiceConnected() {
+         super.onServiceConnected();
++        loadConfig();
++        reloadReceiver = new android.content.BroadcastReceiver() {
++            @Override
++            public void onReceive(android.content.Context context, android.content.Intent intent) {
++                boolean volume = consumeVolumeKeys;
++                loadConfig();
++                if (volume && !consumeVolumeKeys) VolumeKeys.stop();
++            }
++        };
++        android.content.IntentFilter filter = new android.content.IntentFilter(HomeKeyService.ACTION_RELOAD_CONFIG);
++        if (android.os.Build.VERSION.SDK_INT >= 33) registerReceiver(reloadReceiver, filter, android.Manifest.permission.DUMP, null, android.content.Context.RECEIVER_EXPORTED);
++        else registerReceiver(reloadReceiver, filter, android.Manifest.permission.DUMP, null);
++    }
++
++    private void loadConfig() {
+         // From config.xml or a theme's config.json; theme.sh rebinds this service after a push.
+         Config config = Config.load(this);
+         // restore_key_services: note that this helper runs, so Home can put it back after a force stop.
+@@ -51,6 +69,9 @@ public class InputKeyService extends AccessibilityService {
+         if (config.gamepadPassthrough && config.keyFilter && gamepads == null) {
+             gamepads = new GamepadPassthrough(this);
+             gamepads.start();
++        } else if (gamepads != null && !(config.gamepadPassthrough && config.keyFilter)) {
++            gamepads.stop();
++            gamepads = null;
+         }
+     }
+ 
+@@ -81,6 +102,7 @@ public class InputKeyService extends AccessibilityService {
+     /** Unbound by Android: the user turned the helper off, so Home doesn't put it back (ServiceRepair). */
+     @Override
+     public boolean onUnbind(Intent intent) {
++        if (reloadReceiver != null) { try { unregisterReceiver(reloadReceiver); } catch (IllegalArgumentException ignored) { } reloadReceiver = null; }
+         RemoteKeys.release(this);
+         if (repairRecord) ServiceRepair.disconnected(this, getClass());
+         return super.onUnbind(intent);
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/LinkTiles.java b/launcher/app/src/main/java/com/gathin/tvhome/LinkTiles.java
 new file mode 100644
 index 00000000..b9b2c0b3
@@ -1239,10 +1321,10 @@ index 00000000..b9b2c0b3
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index c4993b9b..3e98d8c9 100644
+index eda36c89..236d909c 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-@@ -186,6 +186,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -190,6 +190,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private int wifiIcon;
      /** The pills have been filled in once; later resumes refresh them after the first frame. */
      private boolean pillsShown;
@@ -1254,7 +1336,7 @@ index c4993b9b..3e98d8c9 100644
      private TextView shamsiDate;
      /** lunar_date: the lunisolar date under the date line, and the time zone it is computed for. */
      private TextView lunarDate;
-@@ -206,6 +211,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -210,6 +215,12 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private boolean showStats;
      /** config.xml inputs_connected_only: the Inputs menu lists only connected inputs, the rest behind "More inputs". */
      private boolean inputsConnectedOnly;
@@ -1267,7 +1349,7 @@ index c4993b9b..3e98d8c9 100644
      private boolean shamsi;
      /** greeting_name: said after the greeting, which is shown in capitals. */
      private String greetingName = "";
-@@ -417,6 +428,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -435,6 +446,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              // The pill follows the network callbacks and each return to Home; only the festive light follows the
              // signal level, so only it needs this minute's binder calls (about 7 ms on the UI thread).
              if (festive) updateWifiLabel();
@@ -1275,7 +1357,7 @@ index c4993b9b..3e98d8c9 100644
              sky.update();
              wallpaperPlayer.update();
              handler.postDelayed(this, MINUTE_MS);
-@@ -435,6 +447,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -453,6 +465,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          density = getResources().getDisplayMetrics().density;
          // config.xml, overlaid by config.json from a pushed theme (see Config and tools/theme.sh).
          Config cfg = Config.load(this);
@@ -1285,7 +1367,7 @@ index c4993b9b..3e98d8c9 100644
          homeAppKeys = RemoteKeys.parseAppKeys(cfg.appKeys);
          clockFormat = cfg.clockFormat;
          ClockFormat.apply(getWindow().getDecorView(), clockFormat);
-@@ -520,6 +535,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -545,6 +560,17 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              ((TextView) findViewById(R.id.date)).setTextColor(Color.WHITE);
              findViewById(R.id.clockDivider).setBackgroundColor(Color.WHITE);
          }
@@ -1303,7 +1385,7 @@ index c4993b9b..3e98d8c9 100644
          if (getResources().getBoolean(R.bool.rtl_menu_bar)) {
              // Center Hebrew greetings over the numeric time, independent of a visible AM/PM label. The clock's row
              // is watched too: date_below_clock can move the whole row right under a wider date.
-@@ -557,6 +583,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -582,6 +608,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          lunarOffset = Lunar.offsetFor(cfg.lunarUtcOffset, Locale.getDefault());
          if (lunar) lunarDate.setVisibility(View.VISIBLE);
          greetingName = cfg.greetingName;
@@ -1317,9 +1399,9 @@ index c4993b9b..3e98d8c9 100644
 +            lunarDate.setTextSize(11f);
 +        }
          if (cfg.dateBelowClock) moveDateBelowClock();
-         if (shamsi) {
-             shamsiDate.setVisibility(View.VISIBLE);
-@@ -565,6 +600,51 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         if (cfg.dateBelowClock && cfg.iconOnlyButtons && !cfg.topMenu
+                 && !getResources().getBoolean(R.bool.rtl_menu_bar)) {
+@@ -594,6 +629,51 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              lunarDate.setTextSize(11f);
              date.setPadding(0, (int) (4 * density), 0, 0);
          }
@@ -1371,7 +1453,7 @@ index c4993b9b..3e98d8c9 100644
          vpnApp = cfg.vpnApp;
          vpnPill = cfg.vpnPill && !cfg.topMenu;
          btnVpn = findViewById(R.id.btnVpn);
-@@ -573,6 +653,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -602,6 +682,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          libraryExcludedApps = new HashSet<>(cfg.libraryExcludedApps);
  
          grid = findViewById(R.id.grid);
@@ -1380,7 +1462,7 @@ index c4993b9b..3e98d8c9 100644
          rtlAppGrid = getResources().getBoolean(R.bool.rtl_app_grid);
          // Mirror only the app grid; the header and other locales keep their own layouts.
          // single_row: one span laid out sideways, so the same adapter, glass and dock band serve a scrolling row.
-@@ -647,6 +729,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -676,6 +758,18 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          });
          if (dockRow) grid.addItemDecoration(new DockDecoration(COLUMNS, density, cinematic, cfg.alwaysShowNames, cfg.dockOpacity, cfg.dockGlass, cfg.dockEvenPadding, cfg.dockBand,
                  singleRow, cfg.dockBandAll));
@@ -1399,7 +1481,7 @@ index c4993b9b..3e98d8c9 100644
          if (cfg.fadeRows) TopFade.attach(grid, 48 * density);
          // Reduced motion: the tiles are simply there, with no entrance (reloadApps skips it there too).
          if (animations && !reducedMotion) {
-@@ -663,6 +757,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -692,6 +786,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // tvOS layout: push the dock row towards the bottom of the screen, leaving room for
          // rows_below_dock grid rows under it; the rest of the grid stays below until you press Down.
          int rowsBelowDock = cfg.rowsBelowDock;
@@ -1411,7 +1493,7 @@ index c4993b9b..3e98d8c9 100644
          grid.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
              int h = b - t;
              // Item height follows the tile size, which follows the columns and the rows that must fit (AppAdapter.tileWidthPx).
-@@ -683,6 +782,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -712,6 +811,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              // A single row never shows the names under its tiles (the title above the row names the app), so the
              // 7dp gap and 22dp label item_app.xml keeps for them would only lift the row: sit it that much lower.
              if (singleRow && !cfg.alwaysShowNames) want += (int) (29 * density);
@@ -1423,7 +1505,7 @@ index c4993b9b..3e98d8c9 100644
              if (grid.getPaddingTop() != want) {
                  grid.setPadding(grid.getPaddingLeft(), want, grid.getPaddingRight(), grid.getPaddingBottom());
                  // A vertical grid parks the dock on the new padding line by scrolling (onTileFocused); a sideways
-@@ -836,6 +940,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -865,6 +969,15 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              tlp.bottomMargin = 0;
              topButtons.setLayoutParams(tlp);
              topButtons.setGravity(Gravity.CENTER_VERTICAL);
@@ -1439,7 +1521,7 @@ index c4993b9b..3e98d8c9 100644
          }
          if (iconOnlyButtons) {
              if (cfg.wifiLabelWidth > 0) btnWifi.setMaxWidth(Math.round(cfg.wifiLabelWidth * density));
-@@ -849,6 +962,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -878,6 +991,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              vpnPlainInk = btnVpn.getCompoundDrawableTintList();
              makeIconOnly(btnVpn);
          }
@@ -1464,7 +1546,7 @@ index c4993b9b..3e98d8c9 100644
          btnSettings.setOnLongClickListener(v -> {
              showSettingsMenu();
              return true;
-@@ -872,8 +1003,42 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -901,8 +1032,42 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton;
          };
          btnInputs.setOnKeyListener(pillKeys);
@@ -1507,7 +1589,7 @@ index c4993b9b..3e98d8c9 100644
          btnSettings.setOnKeyListener(pillKeys);
          btnReorder.setOnKeyListener(pillKeys);
          btnLibraryTop.setOnKeyListener(pillKeys);
-@@ -1017,10 +1182,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1071,10 +1236,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          tileRefresh.onStart();
      }
  
@@ -1540,17 +1622,7 @@ index c4993b9b..3e98d8c9 100644
          // A festival that started or ended while Home was in the background: rebuild with or without it.
          if (festive != festival.active(LocalDate.now())) {
              recreate();
-@@ -1052,6 +1239,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
-         if (openLiveTvAfterBoot()) return;
-         updateGreeting();
-         updatePanel();
-+        // CleanTV/VGS: back from an app opened on the shelf, focus is still on its tile, so the "Last opened" line
-+        // kept the time from before this launch ("2 days ago" right after opening it). Refresh it (ngoctrung, 27/10/2026).
-+        if (cinematic && heroMeta != null && lastFocused >= 0 && lastFocused < adapter.appCount()) updateHeroMeta(lastFocused);
-         // The network and Inputs pills keep their state while Home is in the background, and callbacks update them
-         // when the network or the inputs change, so this refresh only catches anything missed. Its binder calls
-         // (about 7 ms on a TCL C755, most of it WifiManager.getConnectionInfo) would hold up the first frame back
-@@ -1065,6 +1255,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1122,6 +1309,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          }
          if (showStats) startStats();
          if (gameDay != null) gameDay.start();
@@ -1558,7 +1630,7 @@ index c4993b9b..3e98d8c9 100644
          sky.update();
          wallpaperPlayer.start();
          handler.postDelayed(minuteTick, MINUTE_MS);
-@@ -1238,6 +1429,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1295,6 +1483,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // Only Home's own share is dropped: a key service that saw the same DOWN keeps its hold.
          RemoteKeys.release(this);
          cancelHoldOk();
@@ -1566,7 +1638,7 @@ index c4993b9b..3e98d8c9 100644
          root.removeCallbacks(showIdleClock);
          endReorder();   // Home or another app while reordering keeps the order so far
          wallpaperPlayer.stop();
-@@ -1297,12 +1489,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1354,12 +1543,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (hasFocus) {
              startPendingSettingsReorder();
              if (libraryFocusPending && appLibrary == null) focusLibrary();
@@ -1648,7 +1720,7 @@ index c4993b9b..3e98d8c9 100644
      @Override
      protected void onDestroy() {
          super.onDestroy();
-@@ -2153,6 +2414,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2228,6 +2486,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          else glass.setAlpha(0f);
      }
  
@@ -1679,7 +1751,7 @@ index c4993b9b..3e98d8c9 100644
      // ---- optional system stats (config.xml show_stats) --------------------------------------------
  
      /** Background reader. Started only while Home is resumed and show_stats is on. */
-@@ -2217,13 +2502,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2292,13 +2574,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // showing a dash that never fills in.
          StringBuilder line = new StringBuilder();
          if (cpu >= 0) line.append(getString(R.string.stats_cpu, cpu));
@@ -1707,7 +1779,7 @@ index c4993b9b..3e98d8c9 100644
      // -1: need another sample. -2: this source cannot be read (Android 9 hides /proc/stat from apps).
      private static final int CPU_UNREADABLE = -2;
      private long cpuTotalPrev = -1, cpuIdlePrev = -1;
-@@ -2870,7 +3166,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2984,7 +3277,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              text = stub || icon == R.drawable.ic_ethernet ? "" : name;
              SpannableString label = new SpannableString(text + " " + badge);
              label.setSpan(span, text.length() + 1, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -1720,7 +1792,7 @@ index c4993b9b..3e98d8c9 100644
          } else if (!TextUtils.equals(btnWifi.getText(), text)) {
              btnWifi.setText(text);
          }
-@@ -3172,7 +3472,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3299,7 +3596,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
       *  source number; "HW8=-" leaves that input out of the Inputs menu (a port the board reports but the set
       *  does not have). Returns the number, -1 for a left-out input, or null when the input is not listed. */
      private Integer mappedSource(String inputId) {
@@ -1754,7 +1826,7 @@ index c4993b9b..3e98d8c9 100644
      }
  
      /** Switches to a passthrough input (HDMI, AV). An input mapped in `input_sources` is opened by sending
-@@ -3575,8 +3900,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3702,8 +4024,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (moduleCards) addSettingsMenuRow(rows, popup, R.string.module_cards, this::showModuleCards);
          if (dockRow) addSettingsMenuRow(rows, popup, R.string.dock_edit, this::startDockEdit);
          addSettingsMenuRow(rows, popup, R.string.reorder, this::toggleReorder);
@@ -1769,7 +1841,7 @@ index c4993b9b..3e98d8c9 100644
          panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
          popup.setWidth(Math.max((int) (200 * density), panel.getMeasuredWidth()));
          // Hebrew puts Settings at the left of the header: grow the menu inward from it.
-@@ -3726,10 +4056,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3853,10 +4180,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                      .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
          }
@@ -2034,10 +2106,31 @@ index 00000000..6481c45d
 +
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java b/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java
-index 6137c6a7..595ab56c 100644
+index 7cd9e4db..624e2ec3 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java
-@@ -188,6 +188,7 @@ final class RemoteKeys {
+@@ -132,6 +132,9 @@ final class RemoteKeys {
+      * Disney+ are all keycode 196, scancodes 485, 490 and 491). Find it with `getevent -lt` while pressing the
+      * button: the EV_KEY code, in hex. Other entries are skipped; for a scancode listed twice the last entry wins.
+      */
++    /** Linux KEY_UNKNOWN (input-event-codes.h): not one button's own code. */
++    static final int KEY_UNKNOWN_SCAN = 240;
++
+     static Map<Integer, String> parseAppScancodes(Iterable<String> entries) {
+         Map<Integer, String> keys = new HashMap<>();
+         for (String entry : entries) {
+@@ -141,7 +144,9 @@ final class RemoteKeys {
+             String code = parts[1].trim();
+             if (!NUMERIC_KEY.matcher(code).matches()) continue;
+             int scan = Integer.parseInt(code);
+-            if (scan > 0) keys.put(scan, parts[2].trim());
++            // CleanTV/VGS: 240 is Linux's KEY_UNKNOWN, shared by every vendor app button on TCL remotes, so a
++            // "scan:240" entry would open its app from all of them (hp4440s, TCL G08, 01/11/2026). Keycodes tell them apart.
++            if (scan > 0 && scan != KEY_UNKNOWN_SCAN) keys.put(scan, parts[2].trim());
+         }
+         return keys;
+     }
+@@ -188,6 +193,7 @@ final class RemoteKeys {
       */
      static boolean handle(Context ctx, KeyEvent event, String app, String holdApp) {
          if (app == null && holdApp == null) return false;
@@ -2045,7 +2138,7 @@ index 6137c6a7..595ab56c 100644
          if (presses == null) {
              Handler handler = new Handler(Looper.getMainLooper());
              presses = new Presses(new Presses.Timer() {
-@@ -215,6 +216,27 @@ final class RemoteKeys {
+@@ -215,6 +221,27 @@ final class RemoteKeys {
          if (presses != null) presses.release(helper);
      }
  
@@ -7113,6 +7206,23 @@ index 49565e22..a67dadc9 100644
      android:canRequestFilterKeyEvents="true"
 +    android:canRetrieveWindowContent="true"
      android:description="@string/home_key_description" />
+diff --git a/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java b/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
+index adf081de..16009164 100644
+--- a/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
++++ b/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
+@@ -89,6 +89,12 @@ public class RemoteKeysTest {
+         // and the keycode parser leaves scancode entries alone
+         assertEquals(1, parse(entries.toArray(new String[0])).size());
+     }
++    // CleanTV/VGS: scancode 240 (KEY_UNKNOWN) is shared by every TCL app button, so it never maps one.
++    @Test public void unknownScancodeIgnored() {
++        Map<Integer, String> scans = RemoteKeys.parseAppScancodes(Arrays.asList("scan:240:com.google.android.youtube.tv", "scan:490:a.b"));
++        assertEquals(1, scans.size());
++        assertEquals(null, scans.get(240));
++    }
+     @Test public void inputTargets() {
+         String hdmi = "com.tcl.tvinput/.passthroughinput.TvPassThroughService/HW1413743104";
+         Map<Integer, String> keys = parse("4062:input:" + hdmi);
 diff --git a/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java b/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java
 new file mode 100644
 index 00000000..fcf5287b

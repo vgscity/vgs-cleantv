@@ -378,6 +378,14 @@
 "moTaVi": "Số giây (0–600) chờ có mạng rồi mới mở app tự mở khi bật tivi hoặc Live TV. Mất điện xong Wi-Fi có khi vài phút mới lên, mở app sớm sẽ báo lỗi. Trong lúc chờ vẫn ở Home, rời Home thì huỷ. 0 (mặc định) là mở ngay."
 },
 {
+"khoa": "open_on_start_on_wake",
+"kieu": "bool",
+"moTa": "With open_on_start_choice, the picked app also opens each time the screen comes back on, for TVs whose remote powers them into a light sleep with no boot. It opens over whatever was in front, an HDMI input included, and open_on_start_network_wait applies. Off by default",
+"canThan": false,
+"ten": "Mở app khởi động cả khi bật màn hình",
+"moTaVi": "Đi cùng \"chọn app mở khi bật tivi\": app đã chọn cũng mở mỗi lần màn hình sáng lại, cho tivi mà remote chỉ cho ngủ nhẹ chứ không khởi động lại. App mở đè lên mọi thứ đang hiện, kể cả cổng HDMI, và vẫn chờ mạng nếu bật chờ mạng. Mặc định tắt."
+},
+{
 "khoa": "focus_overshoot",
 "kieu": "bool",
 "moTa": "The highlight and the focused tile swing past their target before settling (true by default); false glides straight there with smooth scrolling",
@@ -568,7 +576,7 @@
 {
 "khoa": "restore_key_services",
 "kieu": "bool",
-"moTa": "After a force stop of the launcher, Home puts the remote's accessibility helpers (HomeKeyService, InputKeyService) back on the enabled list; needs RESTORE_KEY_SERVICES=1 at install. Off by default",
+"moTa": "After a force stop of the launcher, Home puts the remote's accessibility helpers (HomeKeyService, InputKeyService) back on the enabled list; needs RESTORE_KEY_SERVICES=1 (-RestoreKeyServices on Windows) on every install, since an install without it takes the grant back. Off by default",
 "canThan": false,
 "ten": "Tự bật lại bắt phím remote",
 "moTaVi": "Khi hệ thống buộc dừng Home sạch, tự bật lại dịch vụ bắt phím remote (Home, Input) để nút trên remote không bị \"đơ\" (mặc định tắt)."
@@ -616,7 +624,7 @@
 {
 "khoa": "stock_home_redirect",
 "kieu": "chu",
-"moTa": "Stock launcher package; if the firmware turns it back on (XGIMI), its home screen is sent straight back here (HOME_KEY_SERVICE=1)",
+"moTa": "Stock launcher package; if the firmware turns it back on (XGIMI), its home screen is sent straight back here (HOME_KEY_SERVICE=1). The Home-key half (a stock home already on screen when Home is pressed, #1116) needs key_filter on: with key_filter: false it stays on the stock home until another app opens (#2779)",
 "canThan": true,
 "ten": "Chặn Home gốc tự bật lại",
 "moTaVi": "Tên gói Home gốc của hãng. Nếu phần mềm tivi tự bật lại Home gốc (như XGIMI), màn đó bị chuyển ngay về Home sạch."
@@ -794,6 +802,14 @@
 "canThan": false,
 "ten": "Ánh sáng nền theo màu app",
 "moTaVi": "Ánh sáng phía sau dock theo màu app đang chọn (mặc định bật). Tắt để nền chỉ là màu nền hoặc ảnh nền, hợp với ảnh chụp tĩnh."
+},
+{
+"khoa": "glow_snap",
+"kieu": "bool",
+"moTa": "The ambient glow takes the next app's colour in one frame instead of dimming and fading back in. Each frame of the fade repaints the whole screen, so on a slow GPU (a Mali-G52 on a Xiaomi MiTV-MOEU0) it cut the late frames on Home from 60% to 27%. false by default",
+"canThan": false,
+"ten": "Đổi màu quầng sáng ngay",
+"moTaVi": "Quầng sáng nền đổi sang màu app kế tiếp trong một khung hình thay vì mờ dần rồi hiện lại. Mỗi khung chuyển màu vẽ lại cả màn, nên tivi chip đồ hoạ yếu sẽ mượt hơn khi bật. Mặc định tắt."
 },
 {
 "khoa": "fade_rows",

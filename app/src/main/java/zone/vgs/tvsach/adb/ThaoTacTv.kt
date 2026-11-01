@@ -32,14 +32,35 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
     /** File APK trong assets cho pkgHome. */
     val apkHome get() = if (pkgHome == PKG_HOME_XIAOMI) "tvhome-xiaomi.apk" else "tvhome.apk"
 
-    /** Khởi động lại Home để đọc cấu hình; bật lại dịch vụ trợ năng nếu force-stop làm rơi (theme.sh). */
+    /**
+     * Cho Home sạch đọc lại cấu hình: dựng lại màn Home (NEW_TASK | CLEAR_TASK) và báo hai dịch vụ bắt phím đọc lại file
+     * (reload_config của bản vá). KHÔNG force-stop: force-stop lúc dịch vụ trợ năng của Home đang chạy làm sập
+     * system_server trên TCL G06 Android 11, 2/5 lần, có hay không TalkBack (issue #5, brooklyn96, 01/11/2026).
+     */
     private val KHOI_DONG_LAI_HOME get() =
-            "a=\$(settings get secure enabled_accessibility_services); am force-stop $pkgHome; am start -n $cmpHome >/dev/null; " +
-                "case \"\$a\" in *$pkgHome*) sleep 1; settings put secure enabled_accessibility_services ''; settings put secure accessibility_enabled 0; " +
-                "sleep 1; settings put secure enabled_accessibility_services \"\$a\"; settings put secure accessibility_enabled 1 ;; esac"
+            "am start -W -f 0x10008000 -n $cmpHome >/dev/null; am broadcast -a $RELOAD_CONFIG -p $pkgHome >/dev/null"
 
 
     private fun sh(lenh: String): String = adb.shell(lenh).replace("\r", "")
+
+    // ---------- Bộ nhớ ----------
+    // Tivi dùng lâu đầy bộ nhớ thì đẩy Home sạch vào không được (góp ý TCL, 01/11/2026: hard reset mới cài được).
+
+    /** Chỗ trống của /data (byte trống, tổng byte); null khi không đọc được df. */
+    fun boNhoTrong(): Pair<Long, Long>? = runCatching { docDf(sh("df -k /data")) }.getOrNull()
+
+    /** Xoá cache mọi app (pm trim-caches, không đụng dữ liệu hay tài khoản), trả chỗ trống sau khi dọn. */
+    fun donBoNhoDem(): Pair<Long, Long>? {
+        sh("pm trim-caches 999G")
+        return boNhoTrong()
+    }
+
+    /** Tivi còn trống dưới mức cần để cài Home sạch (canTrong). Không đọc được df thì coi như đủ. */
+    private fun boNhoThap(): Boolean = boNhoTrong()?.let { (trong, tong) -> trong < canTrong(tong) } == true
+
+    /** Lần cài gần nhất hỏng vì tivi thiếu bộ nhớ: màn lỗi hiện thêm nút dọn cache. */
+    var thieuBoNho = false
+        private set
 
     // ---------- Đọc ----------
 
@@ -398,18 +419,27 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         val cvte = laBoMachCvte()
         val giuHomeGoc = KeHoach.laHomeCvte(homeGoc)
 
+        thieuBoNho = boNhoThap()
+        if (thieuBoNho) return baoThieuBoNho(boNhoTrong())
         bao(t("Đẩy và cài Home sạch (${apk.size / 1024} KB)…", "Pushing and installing the clean Home (${apk.size / 1024} KB)…"))
         var out = caiApkHome(apk, bao)
         if (!out.contains("Success")) {
             // Dự phòng: đẩy file rồi pm install (Android 14 đôi khi treo kiểu cài luồng).
             bao(t("Cài kiểu luồng không được, thử đẩy file…", "Streamed install failed, trying a file push…"))
-            if (!out.contains("TIMEOUT")) {
+            if (!out.contains("TIMEOUT") && !THIEU_CHO.containsMatchIn(out)) {
                 adb.ghiFile("/data/local/tmp/tvhome.apk", apk)
                 out = voiHan(120) { sh("pm install -r /data/local/tmp/tvhome.apk; rm -f /data/local/tmp/tvhome.apk") }
             }
         }
+        // Thiếu chỗ thì kiểu cài luồng treo tới hết hạn, không in lỗi gì (máy ảo còn 240 MB, 01/11/2026): đo lại trước khi
+        // đổ cho Play Protect.
+        if (out.contains("TIMEOUT") && boNhoThap()) { thieuBoNho = true; return baoThieuBoNho(boNhoTrong()) }
         if (out.contains("TIMEOUT")) return t("Cài Home sạch quá 2 phút chưa xong: Android có thể đang hỏi xác minh ứng dụng (Play Protect) mà màn hỏi bị che. Vào Tuỳ chọn nhà phát triển, tắt \"Xác minh ứng dụng qua USB\" (hoặc tắt quét của Play Protect trong CH Play), rồi thử lại. Home gốc vẫn nguyên.",
             "Installing the clean Home took over 2 minutes: Android may be showing an app-verification prompt (Play Protect) behind the app. In Developer options turn off \"Verify apps over USB\" (or Play Protect scanning), then retry. The stock Home is untouched.")
+        if (!out.contains("Success") && THIEU_CHO.containsMatchIn(out)) {
+            thieuBoNho = true
+            return baoThieuBoNho(boNhoTrong())
+        }
         if (!out.contains("Success")) {
             return if (out.contains("UPDATE_INCOMPATIBLE"))
                 t("Tivi đã có Home sạch ký bằng khoá khác (cài từ máy khác). Gỡ bản cũ trước: pm uninstall $pkgHome.", "The TV has a clean Home signed with another key (installed from another computer). Uninstall it first: pm uninstall $pkgHome.")
@@ -558,8 +588,11 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         val bam = java.security.MessageDigest.getInstance("SHA-256").digest(apk).joinToString("") { "%02x".format(it) }
         val coSan = runCatching { sh("sha256sum \$(pm path $pkgHome | head -n 1 | sed 's/^package://') 2>/dev/null").trim().substringBefore(' ') }.getOrDefault("")
         if (coSan == bam) return true
+        thieuBoNho = boNhoThap()
+        if (thieuBoNho) return false
         val truoc = sh("settings get secure enabled_accessibility_services").trim()
         val out = caiApkHome(apk)
+        thieuBoNho = !out.contains("Success") && (THIEU_CHO.containsMatchIn(out) || (out.contains("TIMEOUT") && boNhoThap()))
         if (truoc.contains(pkgHome)) {
             sh("settings put secure enabled_accessibility_services '$truoc'; settings put secure accessibility_enabled 1")
         }
@@ -705,6 +738,9 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         // 3.5.16 (Xiaomi MiTV-MZTU0, famquanh 28/10/2026: Luôn mở bật mà vẫn về Netflix; danh sách cho thấy quyền chưa cấp):
         // Xiaomi chặn app ngoài tự chạy lúc khởi động nếu thiếu AUTO_START, và lệnh cấp quyền có thể bị từ chối im lặng.
         thieuQuyen = ""
+        // TCL AppBoot chặn nối lại dịch vụ bắt phím sau khi khởi động ("callee_does't_have_OP_AUTO_START_permission",
+        // TCL G06, issue #5): tivi lên Google TV thay vì Home sạch. Máy khác không có quyền này, lệnh báo lỗi thì thôi.
+        sh("appops set $pkgHome APP_AUTO_START allow 2>/dev/null; appops write-settings 2>/dev/null; true")
         if (luonVe || moDe) {
             sh("cmd appops set $pkgHome AUTO_START allow 2>/dev/null; true")
             val q = sh("dumpsys package $pkgHome 2>/dev/null | grep -m1 -o 'WRITE_SECURE_SETTINGS: granted=[a-z]*'; appops get $pkgHome SYSTEM_ALERT_WINDOW 2>&1 | head -1")
@@ -1252,7 +1288,8 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         sh("echo 1 > $HEN_TAT_ADB; (setsid sh -c 'sleep $giay; [ -f $HEN_TAT_ADB ] && { rm -f $HEN_TAT_ADB; settings put global adb_wifi_enabled 0; settings put global adb_enabled 0; }' </dev/null >/dev/null 2>&1 &); sleep 1")
     }
 
-    fun huyTatAdbTrenTv() { sh("rm -f $HEN_TAT_ADB") }
+    /** Xoá file hẹn; false khi ADB trên tivi đã tắt (hết hạn trước khi quay lại) hoặc không trả lời. */
+    fun huyTatAdbTrenTv(): Boolean = voiHan(8) { sh("rm -f $HEN_TAT_ADB; settings get global adb_enabled") }.trim() == "1"
 
     // ---- Remote trên điện thoại (3.5.0, góp ý build.dng 27/10/2026) ----
 
@@ -1345,7 +1382,40 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
     /** Tivi tự khởi động lại ngay sau khi tắt [goi] (gói tắt xong gần nhất): dừng dọn, [goi] là nghi phạm. */
     class TiviKhoiDongLaiException(val goi: String, val daTat: Int) : Exception("khoi-dong-lai")
 
+    /** Lời báo tivi hết bộ nhớ, kèm số trống / cần khi đọc được (bn = boNhoTrong()). */
+    fun baoThieuBoNho(bn: Pair<Long, Long>?): String {
+        val (trong, tong) = bn ?: (null to null)
+        val con = trong?.let { t(" (chỉ còn ${mb(it)} trống)", " (only ${mb(it)} free)") } ?: ""
+        val can = tong?.let { t(" Cần trống ít nhất ${mb(canTrong(it))}.", " It needs at least ${mb(canTrong(it))} free.") } ?: ""
+        return t("Tivi hết bộ nhớ$con, không chép được Home sạch vào.$can Bấm \"Dọn bộ nhớ đệm\" để xoá cache các app (không mất dữ liệu hay tài khoản), hoặc gỡ bớt app không dùng rồi thử lại. Home gốc vẫn nguyên.",
+            "The TV is out of storage$con, so the clean Home can't be copied over.$can Press \"Clear cache\" to clear app caches (no data or accounts are lost), or uninstall unused apps, then try again. The stock Home is untouched.")
+    }
+
     companion object {
+        /** Tín hiệu reload_config của bản vá launcher (HomeKeyService.ACTION_RELOAD_CONFIG). */
+        const val RELOAD_CONFIG = "zone.vgs.cleantv.RELOAD_CONFIG"
+
+        /**
+         * Chỗ trống tối thiểu để cài Home sạch. Android giữ lại phần "bộ nhớ thấp" (5% bộ nhớ, tối đa 500 MB) và từ chối
+         * cài vào đó ("Requested internal only, but not enough space": máy ảo 9,7 GB còn 240 MB, 01/11/2026), cộng thêm
+         * 30 MB cho APK + bản dịch tối ưu.
+         */
+        fun canTrong(tong: Long): Long = minOf(tong / 20, 500L * 1024 * 1024) + 30L * 1024 * 1024
+
+        /** Android báo hết chỗ khi cài hoặc khi đẩy file. */
+        private val THIEU_CHO = Regex("INSUFFICIENT_STORAGE|No space left|ENOSPC|not enough space", RegexOption.IGNORE_CASE)
+
+        /** Đọc dòng cuối của `df -k` (toybox, Android 8+): cột 2 là tổng, cột 4 là còn trống, đơn vị KB. */
+        fun docDf(df: String): Pair<Long, Long>? {
+            val cot = df.trim().lines().lastOrNull()?.trim()?.split(Regex("\\s+")) ?: return null
+            val tong = cot.getOrNull(1)?.toLongOrNull() ?: return null
+            val trong = cot.getOrNull(3)?.toLongOrNull() ?: return null
+            return trong * 1024 to tong * 1024
+        }
+
+        /** 12 MB / 1,4 GB. */
+        fun mb(b: Long): String = if (b >= 1024L * 1024 * 1024) String.format(java.util.Locale.US, "%.1f GB", b / 1073741824.0).let { t(it.replace('.', ','), it) } else "${b / 1048576} MB"
+
         /**
          * App tạo ra mạng Wi-Fi ĐANG kết nối (cname trong khối cấu hình của SSID đó ở `dumpsys wifi`). null = không đang
          * dùng Wi-Fi hoặc không đọc được SSID; "" = thấy SSID nhưng không thấy khối cấu hình của nó.
