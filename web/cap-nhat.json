@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 112,
-  "versionName": "4.0.2",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.2.apk",
-  "co": 12485749,
-  "ghiChu": "Bật tivi vào thẳng kênh, sửa ô kênh TV360 (Back về TV360 dùng được), hết bộ nhớ thì xem app chiếm chỗ và gỡ bản cập nhật ngay trong app, tự lưu kịch bản khôi phục vào tivi.",
-  "ghiChuEn": "Power on straight into a channel, fixed TV360 channel tiles (Back to TV360 works), see which apps fill the storage and uninstall updates in the app, restore script saved on the TV.",
+  "versionCode": 113,
+  "versionName": "4.0.3",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.3.apk",
+  "co": 12486041,
+  "ghiChu": "Tuỳ chọn mới kiểu Projectivy: bấm nút Cài đặt của Home sạch là mở danh sách app, giữ OK vào cài đặt tivi, nút Menu ra menu cũ (thẻ Tuỳ chỉnh → Nút Cài đặt mở Thư viện).",
+  "ghiChuEn": "New Projectivy-style option: pressing Home's Settings button lists every app, holding OK opens the TV settings, Menu shows the old menu (Options tab → Settings button opens the library).",
   "ngay": "2026-11-02"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "9e77190f3f50afd6",
+   "phienBan": "14732b68b1ee6cb6",
    "url": "/ota/du-lieu.json",
    "co": 2458766,
-   "tuBan": 112
+   "tuBan": 113
   },
   "tvhome.apk": {
-   "phienBan": "57566ff00e721746",
+   "phienBan": "439fe2e1ed374337",
    "url": "/ota/tvhome.apk",
-   "co": 707533,
-   "tuBan": 112
+   "co": 707677,
+   "tuBan": 113
   }
  }
 }

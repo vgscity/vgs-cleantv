@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.0.3",
+  "ngay": "2026-11-02",
+  "vi": [
+   "Nút Cài đặt mở Thư viện kiểu Projectivy: bấm ra danh sách app, giữ vào cài đặt tivi, ẩn viên Thư viện."
+  ],
+  "en": [
+   "Projectivy-style Settings button: press for the app library, hold for TV settings, Library pill hidden."
+  ]
+ },
+ {
   "ban": "4.0.2",
   "ngay": "2026-11-02",
   "vi": [
