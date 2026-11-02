@@ -36,6 +36,12 @@ class KichBanKhoiPhucTest {
         assertFalse(s.lines().any { it.trim() == "adb uninstall com.gathin.tvhome" })
     }
 
+    @Test fun chayTrenTiviThiDungIpMang() {
+        val s = KichBanKhoiPhuc.tao(sl().copy(ip = "127.0.0.1"), vi = true, ipLan = "192.168.1.45")
+        assertTrue(s.contains("adb connect 192.168.1.45:5555"))
+        assertFalse(s.contains("127.0.0.1"))
+    }
+
     @Test fun homeTruocLaHomeSachThiKhongDat() {
         val s = KichBanKhoiPhuc.tao(sl().copy(homeTruoc = "com.gathin.tvhome/.MainActivity"), vi = true)
         assertEquals(0, s.lines().count { it.contains("set-home-activity") })

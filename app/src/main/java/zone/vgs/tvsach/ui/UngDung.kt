@@ -141,6 +141,7 @@ fun UngDung(vm: PhienLamViec = viewModel()) {
                     }
                 }
                 if (vm.loi.isNotEmpty() || (vm.dangBan && vm.man != Man.DANG_TAT)) ThanhTrangThai(vm)
+                HopAppChiemCho(vm)
             }
             }
             vm.banMoi?.takeIf { vm.hoiCapNhat }?.let { b ->
@@ -273,6 +274,42 @@ private fun ThanhBuoc(dangO: Int) {
     }
 }
 
+/** Hộp "app chiếm chỗ" khi tivi hết bộ nhớ: gỡ bản cập nhật / xoá dữ liệu từng app, có hỏi lại trước khi làm. */
+@Composable
+private fun HopAppChiemCho(vm: PhienLamViec) {
+    val ds = vm.appChiemCho ?: return
+    AlertDialog(onDismissRequest = { vm.appChiemCho = null },
+        title = { Text(t("App chiếm nhiều chỗ nhất", "Apps using the most space")) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Phu(t("Gỡ bản cập nhật: app về bản đi kèm tivi, mở lên nó tự cập nhật lại (nhẹ hơn). Xoá dữ liệu: app như mới cài, có thể phải đăng nhập lại. Dung lượng từng app do tivi tự tính, có thể chậm vài giờ.",
+                    "Uninstall updates: the app goes back to the TV's own version and updates itself again when opened (smaller). Clear data: the app is like new, you may need to sign in again. App sizes come from the TV and may lag a few hours."))
+                if (vm.thongBaoDon.isNotEmpty()) Phu(vm.thongBaoDon, Xanh)
+                ds.forEach { a ->
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(The2).padding(10.dp)) {
+                        Text(zone.vgs.tvsach.dulieu.tenDep(a.pkg) + " · " + ThaoTacTv.mb(a.tong), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            if (a.coCapNhat) TextButton(onClick = { vm.hoiDonApp = a.pkg to "cap-nhat" }, enabled = !vm.dangBan) { Text(t("Gỡ bản cập nhật", "Uninstall updates")) }
+                            if (a.duLieu > 1024L * 1024) TextButton(onClick = { vm.hoiDonApp = a.pkg to "du-lieu" }, enabled = !vm.dangBan) { Text(t("Xoá dữ liệu (${ThaoTacTv.mb(a.duLieu)})", "Clear data (${ThaoTacTv.mb(a.duLieu)})"), color = Color(0xFFFF8A80)) }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { vm.appChiemCho = null }) { Text(t("Xong", "Done")) } },
+        containerColor = The1)
+    vm.hoiDonApp?.let { (pkg, viec) ->
+        val ten = zone.vgs.tvsach.dulieu.tenDep(pkg)
+        AlertDialog(onDismissRequest = { vm.hoiDonApp = null },
+            title = { Text(if (viec == "cap-nhat") t("Gỡ bản cập nhật $ten?", "Uninstall $ten updates?") else t("Xoá dữ liệu $ten?", "Clear $ten data?")) },
+            text = { Text(if (viec == "cap-nhat") t("$ten về bản đi kèm tivi. Lần mở sau nó tự cập nhật lại.", "$ten goes back to the TV's own version and updates itself next time it opens.")
+                else t("Cài đặt, tài khoản đăng nhập và nội dung tải về của $ten bị xoá.", "$ten's settings, sign-in and downloads are removed.")) },
+            confirmButton = { TextButton(onClick = { vm.hoiDonApp = null; vm.donApp(pkg, viec) }) { Text(t("Làm", "Do it"), color = Color(0xFFFF8A80)) } },
+            dismissButton = { TextButton(onClick = { vm.hoiDonApp = null }) { Text(t("Thôi", "Cancel")) } },
+            containerColor = The1)
+    }
+}
+
 @Composable
 private fun ThanhTrangThai(vm: PhienLamViec) {
     val laLoi = vm.loi.isNotEmpty()
@@ -284,6 +321,7 @@ private fun ThanhTrangThai(vm: PhienLamViec) {
         Column(Modifier.weight(1f)) {
             Text(if (laLoi) vm.loi else vm.thongBao, fontSize = 14.sp)
             if (laLoi && vm.canDonBoNho) NutPhu(t("Dọn bộ nhớ đệm", "Clear cache"), Icons.Rounded.CleaningServices) { vm.donBoNhoDem() }
+            if (laLoi && vm.canDonBoNho) NutPhu(t("Xem app chiếm chỗ", "See what uses the space"), Icons.Rounded.Apps) { vm.thongBaoDon = ""; vm.moAppChiemCho() }
         }
         if (laLoi && vm.man == Man.KET_NOI) TextButton(onClick = { vm.loi = ""; vm.moHuongDan() }) { Text(t("Hướng dẫn", "Guide")) }
         if (laLoi) TextButton(onClick = { vm.loi = "" }) { Text(t("Ẩn", "Hide")) }
@@ -1287,7 +1325,7 @@ private fun TheTuyChinh(vm: PhienLamViec) {
                 ChonChip(chu, vm.doiHang == v) { vm.doiHang = v }
             }
         }
-        Hang(t("Mở một app khi bật tivi", "Open an app at power-on"), t("Bật, Áp dụng lên tivi, rồi bấm nút bên dưới để chọn app ngay trên tivi", "Turn on, apply to the TV, then use the button below to pick the app on the TV"), vm.moKhiBat) { vm.moKhiBat = it }
+        Hang(t("Mở một app khi bật tivi", "Open an app at power-on"), t("Bật, Áp dụng lên tivi, rồi bấm nút bên dưới để chọn app ngay trên tivi. Chọn được cả ô kênh (📺 VTV1…) để bật tivi là vào thẳng kênh", "Turn on, apply to the TV, then use the button below to pick the app on the TV. Channel tiles (📺 VTV1…) work too, to power on straight into a channel"), vm.moKhiBat) { vm.moKhiBat = it }
         Hang(t("Luôn mở Home sạch khi bật tivi", "Always open the clean Home at power-on"),
             t("Cho tivi tự mở lại Home gốc, HDMI hay app cũ mỗi lần bật: khoảng 1 giây sau Home sạch hiện lên", "For TVs that come back to the stock Home, HDMI or the last app: the clean Home comes up a second after power-on"),
             vm.luonVeHome) { vm.luonVeHome = it }
@@ -1305,7 +1343,7 @@ private fun TheTuyChinh(vm: PhienLamViec) {
         }
         Hang(t("Nút màn hình chờ", "Screensaver button"), t("Bấm là bật ảnh / đồng hồ, tiện khi nghe nhạc", "Starts the photo / clock screensaver, handy with music"), vm.nutManCho) { vm.nutManCho = it }
         Hang(t("Thư viện app", "App library"), t("Nút xem mọi app trên tivi, thêm / bớt khỏi Home", "A button listing every app; add or remove from Home"), vm.thuVienApp) { vm.thuVienApp = it }
-        if (vm.thuVienApp) Hang(t("Thư viện trong menu Cài đặt", "Library in the Settings menu"), t("Bỏ nút Thư viện trên thanh đầu. Mở bằng cách giữ OK trên nút Cài đặt của Home sạch", "No Library button in the top bar. Open it by holding OK on Home's Settings button"), vm.thuVienTrongMenu) { vm.thuVienTrongMenu = it }
+        if (vm.thuVienApp) Hang(t("Thư viện trong menu Cài đặt", "Library in the Settings menu"), t("Bỏ nút Thư viện trên thanh đầu. Mở bằng cách giữ OK trên nút Cài đặt của Home sạch. Viên Thư viện cuối hàng app vẫn hiện (Nâng cao không ẩn được khi không có nút trên thanh đầu)", "No Library button in the top bar. Open it by holding OK on Home's Settings button. The Library pill after the last row stays (Advanced can't hide it without the top-bar button)"), vm.thuVienTrongMenu) { vm.thuVienTrongMenu = it }
         Hang(t("Hiện CPU / bộ nhớ", "Show CPU / memory"), t("Một dòng nhỏ dưới đồng hồ", "One small line under the clock"), vm.hienThongSo) { vm.hienThongSo = it }
     }
     The(t("Remote", "Remote"), Icons.Rounded.SettingsRemote) {

@@ -98,7 +98,7 @@ index 00000000..b1477aae
 +FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 +OTHER DEALINGS IN THE FONT SOFTWARE.
 diff --git a/launcher/app/src/main/AndroidManifest.xml b/launcher/app/src/main/AndroidManifest.xml
-index ca18afa9..39831958 100644
+index ca18afa9..33c27e86 100644
 --- a/launcher/app/src/main/AndroidManifest.xml
 +++ b/launcher/app/src/main/AndroidManifest.xml
 @@ -8,6 +8,11 @@
@@ -134,7 +134,22 @@ index ca18afa9..39831958 100644
      <application
          android:label="@string/app_name"
          android:icon="@mipmap/ic_launcher"
-@@ -197,6 +209,17 @@
+@@ -187,6 +199,14 @@
+ 
+         <!-- stock_home_redirect at boot: HomeKeyService opens this invisible activity once, so the screen behind
+              it sends a window event when it closes (HomeKeyService.probeAtBoot). -->
++        <activity
++            android:name=".LinkOpenActivity"
++            android:exported="false"
++            android:excludeFromRecents="true"
++            android:noHistory="true"
++            android:taskAffinity=""
++            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
++
+         <activity
+             android:name=".ProbeActivity"
+             android:exported="false"
+@@ -197,6 +217,17 @@
  
          <!-- Screensaver: pick it in Settings, or `settings put secure screensaver_components
               com.gathin.tvhome/.ClockDream` over adb. -->
@@ -152,7 +167,7 @@ index ca18afa9..39831958 100644
          <service
              android:name=".ClockDream"
              android:label="@string/dream_name"
-@@ -231,6 +254,16 @@
+@@ -231,6 +262,16 @@
                  <action android:name="android.service.notification.NotificationListenerService" />
              </intent-filter>
          </service>
@@ -169,7 +184,7 @@ index ca18afa9..39831958 100644
          <receiver
              android:name=".GuardConfig"
              android:exported="true"
-@@ -252,5 +285,7 @@
+@@ -252,5 +293,7 @@
                  android:name="android.accessibilityservice"
                  android:resource="@xml/input_key_service" />
          </service>
@@ -178,7 +193,7 @@ index ca18afa9..39831958 100644
      </application>
  </manifest>
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
-index 555fd4c6..2fef1cb6 100644
+index 555fd4c6..90412fd2 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java
 @@ -66,7 +66,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -309,37 +324,19 @@ index 555fd4c6..2fef1cb6 100644
          if (e.kind == Entry.HOME_SETTINGS) {
              ctx.startActivity(new Intent(ctx, HomeSettingsActivity.class)
                      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-@@ -562,6 +594,29 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -562,6 +594,11 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          }
      }
  
-+    /** CleanTV/VGS: open a link tile in its app; if the app no longer takes the link, open the app itself. */
++    /** CleanTV/VGS: open a link tile in its app (LinkTiles.open). */
 +    private void launchLink(Entry e) {
-+        Intent view = new Intent(Intent.ACTION_VIEW, Uri.parse(e.uri)).setPackage(e.target)
-+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-+        // TV360 (6.4, 28/10/2026): a login screen left open on top swallowed the next channel tile; clear above its Home.
-+        if (e.uri.startsWith("tv360:")) view.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-+        PackageManager pm = ctx.getPackageManager();
-+        Intent open = pm.resolveActivity(view, 0) != null ? view : null;
-+        // CleanTV/VGS: an IPTV stream (http/rtsp…) in a video player (VLC, MX Player…), whose filters ask for a video type.
-+        if (open == null && !e.uri.startsWith("https://fptplay.vn")) {
-+            Intent typed = new Intent(Intent.ACTION_VIEW).setDataAndType(Uri.parse(e.uri), "video/*").setPackage(e.target);
-+            if (pm.resolveActivity(typed, 0) != null) open = typed;
-+        }
-+        if (open == null) open = pm.getLeanbackLaunchIntentForPackage(e.target);
-+        if (open == null) open = pm.getLaunchIntentForPackage(e.target);
-+        try {
-+            if (open == null) throw new ActivityNotFoundException();
-+            ctx.startActivity(open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-+        } catch (Exception ex) {
-+            Toast.makeText(ctx, ctx.getString(R.string.cant_open, e.label), Toast.LENGTH_SHORT).show();
-+        }
++        if (!LinkTiles.open(ctx, e.uri, e.target)) Toast.makeText(ctx, ctx.getString(R.string.cant_open, e.label), Toast.LENGTH_SHORT).show();
 +    }
 +
      @Override
      public int getItemCount() {
          return items.size() + (showLibrary ? 1 : 0);
-@@ -691,6 +746,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -691,6 +728,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
  
      /** Share of the tile height the icon takes in uniform_tiles mode (onCreateViewHolder). */
      private static final float ICON_SHARE = 0.62f;
@@ -349,7 +346,7 @@ index 555fd4c6..2fef1cb6 100644
  
      /**
       * The colour covering most of an icon, for a card that should read as that app: a small saturated badge
-@@ -741,8 +799,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -741,8 +781,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
       * square), the card takes that colour, so the mark reads as filling the tile as on tvOS. Otherwise a
       * gradient of the icon's main colour, deepened so the mark stands out. The card clips the corners.
       */
@@ -360,7 +357,7 @@ index 555fd4c6..2fef1cb6 100644
          if (plate != null) return plate;
          float[] hsv = new float[3];
          Color.colorToHSV(fallback, hsv);
-@@ -759,7 +817,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -759,7 +799,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
       * card's top and bottom edges so the mark reads as filling the tile; null when the icon has no
       * opaque plate (a bare mark on transparency).
       */
@@ -369,7 +366,7 @@ index 555fd4c6..2fef1cb6 100644
          if (live == null) return null;
          Drawable d = live.getConstantState() != null ? live.getConstantState().newDrawable().mutate() : live;
          Rect saved = new Rect(d.getBounds());
-@@ -788,8 +846,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -788,8 +828,8 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          if (a == 0 || b == 0) return null;
          // The sampled rows sit at these heights of the tile; extend the line through them to its edges. A row
          // taken further in sits on artwork-side plate, so its slope is less certain: cap how far it reaches.
@@ -380,7 +377,7 @@ index 555fd4c6..2fef1cb6 100644
          float t0 = -yA / (yB - yA), t1 = (1f - yA) / (yB - yA);
          if (topRow != 7 || bottomRow != n - 8) {
              t0 = Math.max(-0.35f, t0);
-@@ -849,6 +907,23 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+@@ -849,6 +889,23 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
          return Math.max(0, Math.min(255, Math.round(v)));
      }
  
@@ -778,7 +775,7 @@ index a5541ffa..3c69d4e5 100644
          if (file == null || !file.isFile()) return null;
          if (file.length() > 64 * 1024) {
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
-index 5f0c136e..88d4cd05 100644
+index 5f0c136e..cfac0138 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 @@ -71,6 +71,12 @@ public class HomeKeyService extends AccessibilityService {
@@ -1050,7 +1047,7 @@ index 5f0c136e..88d4cd05 100644
 -        if (stillArmed(SystemClock.elapsedRealtime(), powerOnUntil)) openHome();
 +        if (!stillArmed(SystemClock.elapsedRealtime(), powerOnUntil)) return;
 +        String pick = wakeOpenApp ? getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getString(OpenOnStart.KEY, "") : "";
-+        Intent app = pick.isEmpty() ? null : OpenOnStart.intent(getPackageManager(), pick);
++        Intent app = pick.isEmpty() ? null : OpenOnStart.intent(this, pick);
 +        if (app != null) {
 +            try {
 +                startActivity(app.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -1162,12 +1159,65 @@ index 7f8eac11..59dd6df3 100644
          RemoteKeys.release(this);
          if (repairRecord) ServiceRepair.disconnected(this, getClass());
          return super.onUnbind(intent);
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
+index 60ea401c..7e7babbf 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
+@@ -232,6 +232,9 @@ public final class LauncherSettingsActivity extends Activity {
+             if (!seen) apps.add(new String[]{r.loadLabel(pm).toString(), pkg});
+         }
+         Collections.sort(apps, (a, b) -> a[0].compareToIgnoreCase(b[0]));
++        // CleanTV/VGS: channel tiles first, so power-on can go straight into a channel (daotrunghieu3010, 02/11/2026).
++        List<LinkTiles.Link> links = LinkTiles.load(this);
++        for (int i = links.size() - 1; i >= 0; i--) apps.add(0, new String[]{"📺 " + links.get(i).label, links.get(i).pkg});
+         String[] labels = new String[apps.size() + 1];
+         labels[0] = getString(R.string.off);
+         String current = choices.getString(OpenOnStart.KEY, "");
+@@ -259,6 +262,10 @@ public final class LauncherSettingsActivity extends Activity {
+     private String openOnStartLabel() {
+         String pkg = choices.getString(OpenOnStart.KEY, "");
+         if (pkg.isEmpty()) return getString(R.string.off);
++        if (pkg.startsWith(LinkTiles.PREFIX)) {
++            LinkTiles.Link l = LinkTiles.find(this, pkg);
++            return l != null ? "📺 " + l.label : pkg;
++        }
+         try {
+             PackageManager pm = getPackageManager();
+             return pm.getApplicationLabel(pm.getApplicationInfo(pkg, 0)).toString();
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/LinkOpenActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/LinkOpenActivity.java
+new file mode 100644
+index 00000000..76769e24
+--- /dev/null
++++ b/launcher/app/src/main/java/com/gathin/tvhome/LinkOpenActivity.java
+@@ -0,0 +1,22 @@
++package com.gathin.tvhome;
++
++import android.app.Activity;
++import android.os.Bundle;
++
++/**
++ * CleanTV/VGS: opens a link tile (a TV channel) as the Open on start app (feedback daotrunghieu3010, 02/11/2026: power on
++ * straight into a channel, not the app's start screen). OpenOnStart.intent hands out an intent for this activity, so
++ * every caller that starts an app at power-on or wake starts a channel the same way; it opens the link and goes away.
++ */
++public final class LinkOpenActivity extends Activity {
++    static final String EXTRA_TILE = "tile";
++
++    @Override
++    protected void onCreate(Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        String pkg = getIntent().getStringExtra(EXTRA_TILE);
++        LinkTiles.Link l = pkg == null ? null : LinkTiles.find(this, pkg);
++        if (l != null) LinkTiles.open(this, l.uri, l.target);
++        finish();
++    }
++}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/LinkTiles.java b/launcher/app/src/main/java/com/gathin/tvhome/LinkTiles.java
 new file mode 100644
-index 00000000..b9b2c0b3
+index 00000000..0bc32d9d
 --- /dev/null
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/LinkTiles.java
-@@ -0,0 +1,152 @@
+@@ -0,0 +1,208 @@
 +package com.gathin.tvhome;
 +
 +import android.content.Context;
@@ -1216,6 +1266,62 @@ index 00000000..b9b2c0b3
 +    }
 +
 +    private LinkTiles() {
++    }
++
++    /** The link_tiles entry behind a tile package ({@link #PREFIX}…), or null when it is gone. */
++    static Link find(Context ctx, String pkg) {
++        for (Link l : load(ctx)) if (l.pkg.equals(pkg)) return l;
++        return null;
++    }
++
++    /** CleanTV/VGS: how long TV360 gets to bring its home up before the channel link (slow TVs: 3 s). */
++    private static final long TV360_CHANNEL_DELAY_MS = 3000;
++    /**
++     * Right after a boot TV360's splash takes far longer (about 10 s on the emulator, 02/11/2026) and its home, when it
++     * comes, covers a channel sent earlier: wait 15 s during the first 3 minutes after boot.
++     */
++    private static final long TV360_BOOT_DELAY_MS = 15_000, BOOT_WINDOW_MS = 180_000;
++
++    /**
++     * Opens a link in its app; if the app no longer takes the link, opens the app itself. False when nothing opened.
++     * Used by the tile and by Open on start (a channel picked as the app to open at power-on, LinkOpenActivity).
++     */
++    static boolean open(Context ctx, String uri, String target) {
++        android.content.Intent view = new android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(uri)).setPackage(target)
++                .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
++        // TV360 (6.4, 28/10/2026): a login screen left open on top swallowed the next channel tile; clear above its Home.
++        if (uri.startsWith("tv360:")) view.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP);
++        android.content.pm.PackageManager pm = ctx.getPackageManager();
++        android.content.Intent open = pm.resolveActivity(view, 0) != null ? view : null;
++        // CleanTV/VGS: an IPTV stream (http/rtsp…) in a video player (VLC, MX Player…), whose filters ask for a video type.
++        if (open == null && !uri.startsWith("https://fptplay.vn")) {
++            android.content.Intent typed = new android.content.Intent(android.content.Intent.ACTION_VIEW).setDataAndType(android.net.Uri.parse(uri), "video/*").setPackage(target);
++            if (pm.resolveActivity(typed, 0) != null) open = typed;
++        }
++        if (open == null) open = pm.getLeanbackLaunchIntentForPackage(target);
++        if (open == null) open = pm.getLaunchIntentForPackage(target);
++        if (open == null) return false;
++        try {
++            // TV360: the tv360:// link opens HomeActivity directly, skipping SplashActivity's start-up, so Back from the
++            // channel left a TV360 home where nothing could be picked (lamtienmanh, Sony 43W800C + Mibox4, 02/11/2026).
++            // Open TV360 the normal way first, then hand it the channel once its home is up (about 1 s on the emulator).
++            android.content.Intent app = open == view ? pm.getLeanbackLaunchIntentForPackage(target) : null;
++            if (app != null && uri.startsWith("tv360:")) {
++                ctx.startActivity(app.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
++                Context appCtx = ctx.getApplicationContext();
++                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
++                    try {
++                        appCtx.startActivity(view);
++                    } catch (Exception ignored) {
++                    }
++                }, android.os.SystemClock.elapsedRealtime() < BOOT_WINDOW_MS ? TV360_BOOT_DELAY_MS : TV360_CHANNEL_DELAY_MS);
++                return true;
++            }
++            ctx.startActivity(open.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
++            return true;
++        } catch (Exception ex) {
++            return false;
++        }
 +    }
 +
 +    /** The link_tiles entries whose target app is installed; bad entries are skipped. */
@@ -1321,7 +1427,7 @@ index 00000000..b9b2c0b3
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index eda36c89..236d909c 100644
+index eda36c89..b092387b 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 @@ -190,6 +190,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
@@ -1792,6 +1898,24 @@ index eda36c89..236d909c 100644
          } else if (!TextUtils.equals(btnWifi.getText(), text)) {
              btnWifi.setText(text);
          }
+@@ -3224,7 +3521,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         String target = bootToLiveTv ? liveTvPkg : app;
+         if (!OpenOnStart.due(boot, prefs.getInt(OpenOnStart.BOOT_KEY, -1), target, getPackageName())) return false;
+         if (!prefs.edit().putInt(OpenOnStart.BOOT_KEY, boot).commit()) return false;
+-        Intent i = bootToLiveTv ? liveTvIntent() : OpenOnStart.intent(getPackageManager(), app);
++        Intent i = bootToLiveTv ? liveTvIntent() : OpenOnStart.intent(this, app);
+         if (i == null) return false;
+         return openWhenReady(i);
+     }
+@@ -3234,7 +3531,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+     private void openStartAppOnWake() {
+         String app = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getString(OpenOnStart.KEY, "");
+         if (app.isEmpty() || app.equals(getPackageName())) return;
+-        Intent i = OpenOnStart.intent(getPackageManager(), app);
++        Intent i = OpenOnStart.intent(this, app);
+         if (i != null) openWhenReady(i);
+     }
+ 
 @@ -3299,7 +3596,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
       *  source number; "HW8=-" leaves that input out of the Inputs menu (a port the board reports but the set
       *  does not have). Returns the number, -1 for a left-out input, or null when the input is not listed. */
@@ -2105,6 +2229,26 @@ index 00000000..6481c45d
 +    }
 +
 +}
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java b/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java
+index 5bdfead7..b807406e 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java
+@@ -52,6 +52,15 @@ final class OpenOnStart {
+         return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+     }
+ 
++    /** CleanTV/VGS: the pick may be a channel tile (LinkTiles.PREFIX…): LinkOpenActivity opens it; null when it is gone. */
++    static Intent intent(android.content.Context ctx, String pick) {
++        if (pick.startsWith(LinkTiles.PREFIX)) {
++            return LinkTiles.find(ctx, pick) == null ? null
++                    : new Intent(ctx, LinkOpenActivity.class).putExtra(LinkOpenActivity.EXTRA_TILE, pick);
++        }
++        return intent(ctx.getPackageManager(), pick);
++    }
++
+     /** The app's TV entry point, or its phone one; null when it is uninstalled or disabled, so Home stays. */
+     static Intent intent(PackageManager pm, String pkg) {
+         Intent i = pm.getLeanbackLaunchIntentForPackage(pkg);
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java b/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java
 index 7cd9e4db..624e2ec3 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java

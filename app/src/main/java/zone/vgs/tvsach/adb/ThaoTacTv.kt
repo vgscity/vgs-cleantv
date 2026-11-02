@@ -55,6 +55,26 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         return boNhoTrong()
     }
 
+    /**
+     * App chiếm nhiều chỗ nhất (dumpsys diskstats, Android tự tính định kỳ nên có thể cũ vài giờ), trừ gói lõi. Cho người
+     * dùng gỡ bản cập nhật / xoá dữ liệu ngay trong CleanTV khi tivi hết chỗ (sohuyet8, Sony BRAVIA 0 MB, 02/11/2026).
+     */
+    fun appChiemCho(): List<AppChiemCho> = runCatching {
+        val ds = docDiskstats(sh("dumpsys diskstats"))
+        val capNhat = sh("pm list packages -s -f").lines().filter { it.contains("=") && it.substringAfter("package:").startsWith("/data/") }
+            .map { it.substringAfterLast('=').trim() }.toSet()
+        ds.filter { (pkg, _) -> pkg !in KHONG_DUNG_VAO && !pkg.startsWith("android") && pkg != pkgHome && pkg != PKG_CLEANTV }
+            .sortedByDescending { it.second.sum() }.take(6)
+            .map { (pkg, so) -> AppChiemCho(pkg, so.sum(), so[1], pkg in capNhat) }
+    }.getOrDefault(emptyList())
+
+    /** Trả app hệ thống về bản đi kèm tivi (bỏ bản cập nhật); Android < 10 không có lệnh riêng, pm uninstall làm việc đó. */
+    fun goCapNhat(pkg: String): Boolean =
+        sh("pm uninstall-system-updates $pkg 2>&1 || pm uninstall $pkg 2>&1").let { it.contains("Success") || !it.contains("Failure") && !it.contains("Unknown") }
+
+    /** Xoá dữ liệu một app (như Cài đặt → Xoá dữ liệu). */
+    fun xoaDuLieu(pkg: String): Boolean = sh("pm clear $pkg").contains("Success")
+
     /** Tivi còn trống dưới mức cần để cài Home sạch (canTrong). Không đọc được df thì coi như đủ. */
     private fun boNhoThap(): Boolean = boNhoTrong()?.let { (trong, tong) -> trong < canTrong(tong) } == true
 
@@ -677,6 +697,10 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
             duoi.joinToString(" -o ") { "-iname '*.$it'" } + " \\) 2>/dev/null; done | head -n 200"
     ).lines().map { it.trim() }.filter { it.startsWith("/") && !it.contains('\'') }
 
+    /** IP mạng LAN của tivi (Wi-Fi hoặc dây), null nếu không có. */
+    fun ipMang(): String? = sh("ip -4 -o addr show 2>/dev/null | grep -v ' lo ' | awk '{print \$4}' | cut -d/ -f1 | head -n 1").trim()
+        .takeIf { Regex("""\d+\.\d+\.\d+\.\d+""").matches(it) }
+
     /** Ghi file vào Download của tivi, trả đường dẫn (thay hộp "Lưu" khi CleanTV chạy trên tivi). */
     fun ghiVaoDownload(ten: String, du: ByteArray): String {
         val p = "/sdcard/Download/" + ten.replace(Regex("[^A-Za-z0-9._-]+"), "-")
@@ -741,8 +765,10 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         // TCL AppBoot chặn nối lại dịch vụ bắt phím sau khi khởi động ("callee_does't_have_OP_AUTO_START_permission",
         // TCL G06, issue #5): tivi lên Google TV thay vì Home sạch. Máy khác không có quyền này, lệnh báo lỗi thì thôi.
         sh("appops set $pkgHome APP_AUTO_START allow 2>/dev/null; appops write-settings 2>/dev/null; true")
+        // Xiaomi: thiếu AUTO_START thì dịch vụ bắt phím không chạy, gán nút remote Dò được mà bấm không ăn (minhtu, EA Pro
+        // nội địa 02/11/2026). Cấp luôn, không chỉ khi Luôn mở / Mở đè; máy khác không có quyền này thì lệnh báo lỗi, thôi.
+        sh("cmd appops set $pkgHome AUTO_START allow 2>/dev/null; true")
         if (luonVe || moDe) {
-            sh("cmd appops set $pkgHome AUTO_START allow 2>/dev/null; true")
             val q = sh("dumpsys package $pkgHome 2>/dev/null | grep -m1 -o 'WRITE_SECURE_SETTINGS: granted=[a-z]*'; appops get $pkgHome SYSTEM_ALERT_WINDOW 2>&1 | head -1")
             thieuQuyen = listOfNotNull(
                 t("sửa cài đặt hệ thống", "change system settings").takeIf { !q.contains("granted=true") },
@@ -1392,6 +1418,22 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
     }
 
     companion object {
+        /** Không đưa vào danh sách app chiếm chỗ: xoá dữ liệu / gỡ cập nhật mấy gói này làm hỏng tivi hoặc đăng xuất cả máy. */
+        private val KHONG_DUNG_VAO = setOf("com.google.android.gms", "com.google.android.gsf", "com.google.android.webview",
+            "com.android.webview", "com.google.android.trichromelibrary", "com.android.vending.billing", "com.google.android.tvlauncher",
+            "com.google.android.apps.tv.launcherx", "com.google.android.tungsten.setupwraith", "com.android.providers.media",
+            "com.google.android.providers.media.module", "com.android.providers.settings", "com.android.shell")
+        private const val PKG_CLEANTV = "zone.vgs.cleantv"
+
+        /** "Package Names", "App Sizes", "App Data Sizes", "Cache Sizes" của dumpsys diskstats → gói → [app, dữ liệu, cache]. */
+        fun docDiskstats(d: String): List<Pair<String, LongArray>> {
+            fun mang(ten: String): List<String> = Regex("""(?m)^$ten: \[(.*)\]""").find(d)?.groupValues?.get(1)
+                ?.split(',')?.map { it.trim().trim('"') }?.filter { it.isNotEmpty() } ?: emptyList()
+            val ten = mang("Package Names"); val app = mang("App Sizes"); val du = mang("App Data Sizes"); val cache = mang("Cache Sizes")
+            if (ten.isEmpty() || app.size != ten.size || du.size != ten.size) return emptyList()
+            return ten.indices.map { i -> ten[i] to longArrayOf(app[i].toLongOrNull() ?: 0, du[i].toLongOrNull() ?: 0, cache.getOrNull(i)?.toLongOrNull() ?: 0) }
+        }
+
         /** Tín hiệu reload_config của bản vá launcher (HomeKeyService.ACTION_RELOAD_CONFIG). */
         const val RELOAD_CONFIG = "zone.vgs.cleantv.RELOAD_CONFIG"
 
@@ -1489,3 +1531,6 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         private val APP_XUAT_XUONG = Regex("factorytest|factory_test|factorymode", RegexOption.IGNORE_CASE)
     }
 }
+
+/** Một app trong danh sách chiếm chỗ: tổng byte (app + dữ liệu + cache), byte dữ liệu, có bản cập nhật gỡ được không. */
+data class AppChiemCho(val pkg: String, val tong: Long, val duLieu: Long, val coCapNhat: Boolean)

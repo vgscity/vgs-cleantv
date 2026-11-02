@@ -12,7 +12,8 @@ object KichBanKhoiPhuc {
     private val TEN_GOI = Regex("^[A-Za-z0-9_.]+$")
     private val THANH_PHAN = Regex("^[A-Za-z0-9_.]+/[A-Za-z0-9_.$]+$")
 
-    fun tao(sl: BanSaoLuu, vi: Boolean): String {
+    /** [ipLan]: IP mạng của tivi khi sl.ip là 127.0.0.1 (CleanTV chạy ngay trên tivi), máy tính không nối được địa chỉ đó. */
+    fun tao(sl: BanSaoLuu, vi: Boolean, ipLan: String? = null): String {
         fun t(v: String, e: String) = if (vi) v else e
         val dong = mutableListOf<String>()
         fun chu(s: String) { dong += ": $s" }
@@ -20,7 +21,7 @@ object KichBanKhoiPhuc {
         chu(t("Cần adb (Android platform-tools). Windows: bấm đúp file này. Mac / Linux: sh tên-file.bat",
             "Needs adb (Android platform-tools). Windows: double-click this file. Mac / Linux: sh file-name.bat"))
         chu(t("Tivi phải bật Gỡ lỗi USB. Sai IP thì sửa dòng adb connect bên dưới.", "USB debugging must be on. If the IP changed, edit the adb connect line below."))
-        dong += "adb connect ${sl.ip}:5555"
+        dong += "adb connect ${ipLan?.takeIf { it.isNotBlank() } ?: sl.ip}:5555"
         val goi = sl.daTatBoiApp.filter { TEN_GOI.matches(it) }
         if (goi.isNotEmpty()) chu(t("Bật lại ${goi.size} gói CleanTV đã tắt", "Re-enable the ${goi.size} packages CleanTV disabled"))
         goi.forEach { dong += "adb shell pm enable --user 0 $it" }

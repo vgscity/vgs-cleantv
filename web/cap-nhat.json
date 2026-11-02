@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 111,
-  "versionName": "4.0.1",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.1.apk",
-  "co": 12484697,
-  "ghiChu": "Báo rõ khi tivi hết bộ nhớ (kèm nút dọn bộ nhớ đệm), đổi giao diện không còn khởi động lại Home (tránh sập tivi TCL Android 11), CleanTV trên tivi chờ 20 phút mới tự tắt ADB, sửa nút app trên remote TCL.",
-  "ghiChuEn": "Clear out-of-storage message with a Clear cache button, applying a look no longer restarts Home (avoids a crash on TCL Android 11 TVs), CleanTV on the TV waits 20 minutes before turning ADB off, fixed app buttons on TCL remotes.",
-  "ngay": "2026-11-01"
+  "versionCode": 112,
+  "versionName": "4.0.2",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.2.apk",
+  "co": 12485749,
+  "ghiChu": "Bật tivi vào thẳng kênh, sửa ô kênh TV360 (Back về TV360 dùng được), hết bộ nhớ thì xem app chiếm chỗ và gỡ bản cập nhật ngay trong app, tự lưu kịch bản khôi phục vào tivi.",
+  "ghiChuEn": "Power on straight into a channel, fixed TV360 channel tiles (Back to TV360 works), see which apps fill the storage and uninstall updates in the app, restore script saved on the TV.",
+  "ngay": "2026-11-02"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "37f6ea7a048e153b",
+   "phienBan": "9e77190f3f50afd6",
    "url": "/ota/du-lieu.json",
    "co": 2458766,
-   "tuBan": 111
+   "tuBan": 112
   },
   "tvhome.apk": {
-   "phienBan": "14264f548bae5902",
+   "phienBan": "57566ff00e721746",
    "url": "/ota/tvhome.apk",
-   "co": 707013,
-   "tuBan": 111
+   "co": 707533,
+   "tuBan": 112
   }
  }
 }

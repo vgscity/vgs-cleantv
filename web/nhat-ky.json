@@ -1,5 +1,25 @@
 [
  {
+  "ban": "4.0.2",
+  "ngay": "2026-11-02",
+  "vi": [
+   "- Bật tivi vào thẳng kênh: ở \"Mở một app khi bật tivi\" chọn được ô kênh (📺 VTV1…)",
+   "- Ô kênh TV360: xem xong bấm Back về TV360 vẫn chọn được kênh, phim khác (trước đây TV360 đứng hình)",
+   "- Tivi hết bộ nhớ: nút \"Xem app chiếm chỗ\" liệt kê app nặng nhất, gỡ bản cập nhật hoặc xoá dữ liệu ngay trong CleanTV",
+   "- Dọn xong hoặc cài Home sạch xong, kịch bản khôi phục tự lưu vào thư mục Download của tivi",
+   "- Tivi Xiaomi: Home sạch được phép tự chạy để nút gán trên remote ăn ổn định hơn",
+   "- Ghi rõ khi nào viên Thư viện cuối hàng app ẩn được"
+  ],
+  "en": [
+   "- Power on straight into a channel: \"Open an app at power-on\" now lists channel tiles (📺 VTV1…)",
+   "- TV360 channel tiles: Back to TV360 still lets you pick other channels and films (TV360 used to freeze)",
+   "- Out of storage: \"See what uses the space\" lists the biggest apps, uninstall updates or clear data right in CleanTV",
+   "- After cleaning or installing the clean Home, the restore script is saved to the TV's Download folder",
+   "- Xiaomi TVs: the clean Home may auto-start so remapped remote buttons work reliably",
+   "- Says when the Library pill after the last row can be hidden"
+  ]
+ },
+ {
   "ban": "4.0.1",
   "ngay": "2026-11-01",
   "vi": [

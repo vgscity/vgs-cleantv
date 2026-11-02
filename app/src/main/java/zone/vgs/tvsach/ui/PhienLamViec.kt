@@ -763,6 +763,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         trangThai = io { tv.docTrangThai() }
         saoLuu = kho.doc(info.khoaLuu)
         taiLaiSaoLuu()
+        luuKichBanVaoTv()
         chuanBiDock()
     }
 
@@ -1149,6 +1150,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         zone.vgs.tvsach.Dem.gui(ctx, "home", tenTiviDem(), dock.size, "theme:${themeChon.id}")
         if (ghimMayChieu.isNotEmpty()) zone.vgs.tvsach.Dem.gui(ctx, "may-chieu", tenTiviDem(), ghimMayChieu.size, ghimMayChieu.keys.joinToString(",").take(110))
         homeXong = true
+        luuKichBanVaoTv()
         ghi(t("Home sạch đã chạy. Bấm Home trên remote để xem.", "The clean Home is running. Press Home on the remote to see it."))
         taiLaiSaoLuu()
         man = Man.XONG
@@ -1364,8 +1366,12 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         cauHinhBao = t("Đã lưu kịch bản khôi phục.", "Restore script saved.")
     }
 
-    private fun kichBan(): String = zone.vgs.tvsach.dulieu.KichBanKhoiPhuc.tao(
-        saoLuu ?: error(t("Chưa có bản sao lưu của tivi này.", "No backup for this TV yet.")), zone.vgs.tvsach.NgonNgu.tiengViet)
+    private suspend fun kichBan(): String {
+        val sl = saoLuu ?: error(t("Chưa có bản sao lưu của tivi này.", "No backup for this TV yet."))
+        // Chạy ngay trên tivi thì sao lưu ghi 127.0.0.1: kịch bản cho máy tính cần IP mạng thật của tivi.
+        val ipLan = if (sl.ip == "127.0.0.1" || sl.ip == "localhost") runCatching { io { tv.ipMang() } }.getOrNull() else null
+        return zone.vgs.tvsach.dulieu.KichBanKhoiPhuc.tao(sl, zone.vgs.tvsach.NgonNgu.tiengViet, ipLan)
+    }
 
     val tenFileKichBan get() = "cleantv-khoi-phuc-" + (saoLuu?.ten ?: "tivi").lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(30) + ".bat"
 
@@ -1391,6 +1397,17 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         val du = taoFileCauHinh()
         val p = io { tv.ghiVaoDownload(tenFileCauHinh, du) }
         cauHinhBao = t("Đã lưu vào $p (thư mục Download của tivi).", "Saved to $p (the TV's Download folder).")
+    }
+
+    /**
+     * Tự chép kịch bản khôi phục vào Download của tivi sau khi Dọn / Cài Home sạch (góp ý gy_mvy0wvet, 01/11/2026): lỡ mất
+     * điện thoại hay xoá app vẫn còn đường khôi phục bằng máy tính. Không ghi được thì thôi, không chặn việc chính.
+     */
+    private suspend fun luuKichBanVaoTv() {
+        if (saoLuu == null) return
+        runCatching { val chu = kichBan(); io { tv.ghiVaoDownload(tenFileKichBan, chu.toByteArray()) } }.onSuccess { p ->
+            ghi(t("Đã chép kịch bản khôi phục vào $p trên tivi.", "Copied the restore script to $p on the TV."))
+        }
     }
 
     fun xuatKichBanTv() = chay(t("Đang lưu kịch bản khôi phục…", "Saving the restore script…")) {
@@ -1569,6 +1586,34 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             if (!runCatching { io { tv.huyTatAdbTrenTv() } }.getOrDefault(false)) baoDaTuTatAdb()
         }
     }
+
+    /** Danh sách app chiếm chỗ đang mở (null = đóng hộp). */
+    var appChiemCho by mutableStateOf<List<zone.vgs.tvsach.adb.AppChiemCho>?>(null)
+    /** Việc chờ xác nhận trong hộp: gói + "cap-nhat" | "du-lieu". */
+    var hoiDonApp by mutableStateOf<Pair<String, String>?>(null)
+
+    fun moAppChiemCho() = chay(t("Đang xem app nào chiếm chỗ…", "Checking which apps use the space…")) {
+        val ds = io { tv.appChiemCho() }
+        if (ds.isEmpty()) error(t("Tivi không cho biết dung lượng từng app. Vào Cài đặt > Ứng dụng trên tivi, gỡ bản cập nhật hoặc xoá dữ liệu app lớn (YouTube, CH Play…).",
+            "The TV doesn't report app sizes. In the TV's Settings > Apps, uninstall updates or clear data of big apps (YouTube, Play Store…)."))
+        appChiemCho = ds
+    }
+
+    fun donApp(pkg: String, viec: String) = chay(t("Đang dọn ${zone.vgs.tvsach.dulieu.tenDep(pkg)}…", "Cleaning up ${zone.vgs.tvsach.dulieu.tenDep(pkg)}…")) {
+        val truoc = io { tv.boNhoTrong() }?.first
+        val ok = io { if (viec == "cap-nhat") tv.goCapNhat(pkg) else tv.xoaDuLieu(pkg) }
+        val sau = io { tv.boNhoTrong() }
+        boNho = sau
+        appChiemCho = io { tv.appChiemCho() }
+        if (!ok) error(t("Tivi không cho làm việc này với ${zone.vgs.tvsach.dulieu.tenDep(pkg)}.", "The TV refused this for ${zone.vgs.tvsach.dulieu.tenDep(pkg)}."))
+        val duoc = if (truoc != null && sau != null && sau.first > truoc) ThaoTacTv.mb(sau.first - truoc) else "0 MB"
+        thongBaoDon = t("Lấy lại $duoc. Tivi còn trống ${sau?.let { ThaoTacTv.mb(it.first) } ?: "?"}" +
+            (sau?.let { if (it.first >= ThaoTacTv.canTrong(it.second)) ", đủ để cài Home sạch." else ", cần ${ThaoTacTv.mb(ThaoTacTv.canTrong(it.second))}." } ?: "."),
+            "Freed $duoc. The TV now has ${sau?.let { ThaoTacTv.mb(it.first) } ?: "?"} free" +
+            (sau?.let { if (it.first >= ThaoTacTv.canTrong(it.second)) ", enough for the clean Home." else ", it needs ${ThaoTacTv.mb(ThaoTacTv.canTrong(it.second))}." } ?: "."))
+    }
+    /** Kết quả lần dọn app gần nhất, hiện trong hộp app chiếm chỗ. */
+    var thongBaoDon by mutableStateOf("")
 
     /** Bấm "Giữ ADB": thử lại kết nối trước, ADB đã tắt thì nói rõ thay vì giả như giữ được (issue #6). */
     fun chonGiuAdb(sau: () -> Unit = {}) {
