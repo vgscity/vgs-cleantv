@@ -786,7 +786,7 @@ index a5541ffa..3c69d4e5 100644
          if (file == null || !file.isFile()) return null;
          if (file.length() > 64 * 1024) {
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
-index 5f0c136e..cfac0138 100644
+index 5f0c136e..78fcc8e2 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 @@ -71,6 +71,12 @@ public class HomeKeyService extends AccessibilityService {
@@ -802,7 +802,7 @@ index 5f0c136e..cfac0138 100644
      /** power_on_home: the Live TV package to send back to Home, empty when off; armed until this uptime or a key. */
      private String powerOnLiveTv = "";
      private long powerOnUntil;
-@@ -80,10 +86,86 @@ public class HomeKeyService extends AccessibilityService {
+@@ -80,10 +86,87 @@ public class HomeKeyService extends AccessibilityService {
      private Map<Integer, String> frontAppKeys = Collections.emptyMap();
      private Map<Integer, String> frontAppScancodes = Collections.emptyMap();
      private String frontPackage = "";
@@ -879,6 +879,7 @@ index 5f0c136e..cfac0138 100644
 +     */
 +    static final String ACTION_RELOAD_CONFIG = "zone.vgs.cleantv.RELOAD_CONFIG";
 +    private BroadcastReceiver reloadReceiver;
++    private BroadcastReceiver quietReceiver;
 +
      /** power_on_home_always: Home at every power-on, not only over Live TV. */
      private boolean powerOnAlways;
@@ -889,7 +890,7 @@ index 5f0c136e..cfac0138 100644
      /** Stops key filtering while a game controller is connected; null unless gamepad_passthrough and key_filter, or before the unlock. */
      private GamepadPassthrough gamepads;
      /** Screen-off receiver while guard_off_in_standby is set; null otherwise. */
-@@ -97,6 +179,50 @@ public class HomeKeyService extends AccessibilityService {
+@@ -97,6 +180,58 @@ public class HomeKeyService extends AccessibilityService {
      protected void onServiceConnected() {
          super.onServiceConnected();
          running = this;
@@ -937,10 +938,18 @@ index 5f0c136e..cfac0138 100644
 +        };
 +        if (Build.VERSION.SDK_INT >= 33) registerReceiver(reloadReceiver, new IntentFilter(ACTION_RELOAD_CONFIG), android.Manifest.permission.DUMP, null, Context.RECEIVER_EXPORTED);
 +        else registerReceiver(reloadReceiver, new IntentFilter(ACTION_RELOAD_CONFIG), android.Manifest.permission.DUMP, null);
++        // CleanTV/VGS: the TV turned off with a film still playing in the box (feedback 01/11/2026).
++        quietReceiver = new BroadcastReceiver() {
++            @Override
++            public void onReceive(Context context, Intent intent) {
++                QuietBehind.run(context);
++            }
++        };
++        registerReceiver(quietReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
          settingsScancodes = getResources().getIntArray(R.array.settings_key_scancodes);
          // The service is directBootAware: Android 11 skips a service that is not while the user is still
          // locked at boot, writes accessibility_enabled=0 and, on TCL G03 firmware, never binds it after the
-@@ -141,6 +267,7 @@ public class HomeKeyService extends AccessibilityService {
+@@ -141,6 +276,7 @@ public class HomeKeyService extends AccessibilityService {
          RemoteKeys.release(this);
          stopWaitingForUnlock();
          if (screenOnReceiver != null) unregisterReceiver(screenOnReceiver);
@@ -948,7 +957,7 @@ index 5f0c136e..cfac0138 100644
          if (standbyExit != null) {
              try {
                  unregisterReceiver(standbyExit);
-@@ -182,7 +309,11 @@ public class HomeKeyService extends AccessibilityService {
+@@ -182,7 +318,11 @@ public class HomeKeyService extends AccessibilityService {
          GuardKeep.stepOut(this);
      }
  
@@ -960,7 +969,7 @@ index 5f0c136e..cfac0138 100644
          // Keycodes and the panel choice can also come from a theme; theme.sh restarts this service.
          Config config = Config.load(this);
          // restore_key_services: note that this helper runs, so Home can put it back after a force stop. Here, not
-@@ -214,6 +345,12 @@ public class HomeKeyService extends AccessibilityService {
+@@ -214,6 +354,12 @@ public class HomeKeyService extends AccessibilityService {
          powerOnLiveTv = config.powerOnHome && !config.bootToLiveTv && !config.liveTvPackage.equals(openOnStart)
                  ? config.liveTvPackage : "";
          powerOnAlways = config.powerOnHomeAlways && !config.bootToLiveTv && openOnStart.isEmpty();
@@ -973,7 +982,7 @@ index 5f0c136e..cfac0138 100644
          if (!powerOnLiveTv.isEmpty() || powerOnAlways) {
              armPowerOnHome();
          } else if (screenOnReceiver != null) {
-@@ -228,6 +365,7 @@ public class HomeKeyService extends AccessibilityService {
+@@ -228,6 +374,7 @@ public class HomeKeyService extends AccessibilityService {
              setServiceInfo(info);
          }
          if (!stockHome.isEmpty() || !powerOnLiveTv.isEmpty()) probeAtBoot();
@@ -981,7 +990,7 @@ index 5f0c136e..cfac0138 100644
          armStandbyExit();
          holdAppKeys = RemoteKeys.parseHoldAppKeys(config.appKeys);
          holdAppScancodes = RemoteKeys.parseHoldAppScancodes(config.appKeys);
-@@ -235,6 +373,10 @@ public class HomeKeyService extends AccessibilityService {
+@@ -235,6 +382,10 @@ public class HomeKeyService extends AccessibilityService {
          if (config.gamepadPassthrough && config.keyFilter && gamepads == null) {
              gamepads = new GamepadPassthrough(this);
              gamepads.start();
@@ -992,7 +1001,7 @@ index 5f0c136e..cfac0138 100644
          }
      }
  
-@@ -254,6 +396,21 @@ public class HomeKeyService extends AccessibilityService {
+@@ -254,6 +405,21 @@ public class HomeKeyService extends AccessibilityService {
  
      @Override
      protected boolean onKeyEvent(KeyEvent event) {
@@ -1014,7 +1023,7 @@ index 5f0c136e..cfac0138 100644
          // power_on_home: the first key after power-on hands the TV to the user (power and wake keys don't count).
          if (powerOnUntil != 0 && event.getAction() == KeyEvent.ACTION_DOWN
                  && event.getKeyCode() != KeyEvent.KEYCODE_POWER && event.getKeyCode() != KeyEvent.KEYCODE_WAKEUP) {
-@@ -287,7 +444,9 @@ public class HomeKeyService extends AccessibilityService {
+@@ -287,7 +453,9 @@ public class HomeKeyService extends AccessibilityService {
              redirectHomeKey(event);
              return false;
          }
@@ -1025,17 +1034,18 @@ index 5f0c136e..cfac0138 100644
          if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) openHome();
          return true;
      }
-@@ -296,6 +455,9 @@ public class HomeKeyService extends AccessibilityService {
+@@ -296,6 +464,10 @@ public class HomeKeyService extends AccessibilityService {
      @Override
      public boolean onUnbind(Intent intent) {
          RemoteKeys.release(this);
 +        if (learnReceiver != null) { try { unregisterReceiver(learnReceiver); } catch (IllegalArgumentException ignored) { } learnReceiver = null; }
 +        if (typeReceiver != null) { try { unregisterReceiver(typeReceiver); } catch (IllegalArgumentException ignored) { } typeReceiver = null; }
 +        if (reloadReceiver != null) { try { unregisterReceiver(reloadReceiver); } catch (IllegalArgumentException ignored) { } reloadReceiver = null; }
++        if (quietReceiver != null) { try { unregisterReceiver(quietReceiver); } catch (IllegalArgumentException ignored) { } quietReceiver = null; }
          if (repairRecord && !steppingOut) ServiceRepair.disconnected(this, getClass());
          return super.onUnbind(intent);
      }
-@@ -321,7 +483,14 @@ public class HomeKeyService extends AccessibilityService {
+@@ -321,7 +493,14 @@ public class HomeKeyService extends AccessibilityService {
          }
          // stock_home_redirect: the firmware turned the stock launcher back on and its home screen came up.
          CharSequence cls = event.getClassName();
@@ -1051,7 +1061,7 @@ index 5f0c136e..cfac0138 100644
      }
  
      /** How long power_on_home stays armed after the screen turns on without a reboot. */
-@@ -349,7 +518,18 @@ public class HomeKeyService extends AccessibilityService {
+@@ -349,7 +528,18 @@ public class HomeKeyService extends AccessibilityService {
  
      /** power_on_home_always: Home, unless a key was pressed since the screen came on (the user has the TV). */
      private void homeAtPowerOn() {
@@ -1071,7 +1081,7 @@ index 5f0c136e..cfac0138 100644
      }
  
      static boolean stillArmed(long now, long armedUntil) {
-@@ -390,6 +570,39 @@ public class HomeKeyService extends AccessibilityService {
+@@ -390,6 +580,39 @@ public class HomeKeyService extends AccessibilityService {
          }
      }
  
@@ -1111,7 +1121,7 @@ index 5f0c136e..cfac0138 100644
      static boolean firstBindAfterBoot(int boot, int lastBoot, long uptimeMs) {
          return boot >= 0 && boot != lastBoot && uptimeMs < BOOT_WINDOW_MS;
      }
-@@ -415,6 +628,8 @@ public class HomeKeyService extends AccessibilityService {
+@@ -415,6 +638,8 @@ public class HomeKeyService extends AccessibilityService {
      }
  
      private void openHome() {
@@ -1438,7 +1448,7 @@ index 00000000..0bc32d9d
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index eda36c89..1bac4215 100644
+index eda36c89..34a663f3 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 @@ -190,6 +190,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
@@ -1730,7 +1740,7 @@ index eda36c89..1bac4215 100644
          btnReorder.setOnKeyListener(pillKeys);
          btnLibraryTop.setOnKeyListener(pillKeys);
          for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
-@@ -1071,10 +1254,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1071,10 +1254,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          tileRefresh.onStart();
      }
  
@@ -1760,10 +1770,11 @@ index eda36c89..1bac4215 100644
          super.onResume();
          resumed = true;
 +        batNghePhien();
++        QuietBehind.run(this);
          // A festival that started or ended while Home was in the background: rebuild with or without it.
          if (festive != festival.active(LocalDate.now())) {
              recreate();
-@@ -1122,6 +1327,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1122,6 +1328,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          }
          if (showStats) startStats();
          if (gameDay != null) gameDay.start();
@@ -1771,7 +1782,7 @@ index eda36c89..1bac4215 100644
          sky.update();
          wallpaperPlayer.start();
          handler.postDelayed(minuteTick, MINUTE_MS);
-@@ -1295,6 +1501,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1295,6 +1502,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // Only Home's own share is dropped: a key service that saw the same DOWN keeps its hold.
          RemoteKeys.release(this);
          cancelHoldOk();
@@ -1779,7 +1790,7 @@ index eda36c89..1bac4215 100644
          root.removeCallbacks(showIdleClock);
          endReorder();   // Home or another app while reordering keeps the order so far
          wallpaperPlayer.stop();
-@@ -1354,12 +1561,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1354,12 +1562,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (hasFocus) {
              startPendingSettingsReorder();
              if (libraryFocusPending && appLibrary == null) focusLibrary();
@@ -1861,7 +1872,7 @@ index eda36c89..1bac4215 100644
      @Override
      protected void onDestroy() {
          super.onDestroy();
-@@ -1756,6 +2032,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1756,6 +2033,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (openPopup != null) openPopup.dismiss();
          libraryFocusPending = false;
          libraryFromTopBar = false;
@@ -1869,7 +1880,7 @@ index eda36c89..1bac4215 100644
          libraryFromVpnPill = false;
          appLibrary = new AppLibraryDialog(this, animations, reducedMotion, appLibrarySelection, libraryOkOpens, adapter::containsPackage, () -> reloadApps(false), () -> {
              appLibrary = null;
-@@ -1765,6 +2042,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1765,6 +2043,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  btnLibraryTop.requestFocus();
                  return;
              }
@@ -1881,7 +1892,7 @@ index eda36c89..1bac4215 100644
              boolean fromVpnPill = libraryFromVpnPill;
              libraryFromVpnPill = false;
              // The VPN pill can hide while the library is open (its VPN dropped): then focus goes as from the grid.
-@@ -2228,6 +2510,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2228,6 +2511,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          else glass.setAlpha(0f);
      }
  
@@ -1912,7 +1923,7 @@ index eda36c89..1bac4215 100644
      // ---- optional system stats (config.xml show_stats) --------------------------------------------
  
      /** Background reader. Started only while Home is resumed and show_stats is on. */
-@@ -2292,13 +2598,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2292,13 +2599,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // showing a dash that never fills in.
          StringBuilder line = new StringBuilder();
          if (cpu >= 0) line.append(getString(R.string.stats_cpu, cpu));
@@ -1940,7 +1951,7 @@ index eda36c89..1bac4215 100644
      // -1: need another sample. -2: this source cannot be read (Android 9 hides /proc/stat from apps).
      private static final int CPU_UNREADABLE = -2;
      private long cpuTotalPrev = -1, cpuIdlePrev = -1;
-@@ -2984,7 +3301,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2984,7 +3302,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              text = stub || icon == R.drawable.ic_ethernet ? "" : name;
              SpannableString label = new SpannableString(text + " " + badge);
              label.setSpan(span, text.length() + 1, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -1953,7 +1964,7 @@ index eda36c89..1bac4215 100644
          } else if (!TextUtils.equals(btnWifi.getText(), text)) {
              btnWifi.setText(text);
          }
-@@ -3027,6 +3348,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3027,6 +3349,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private View btnLibraryTop;
      /** The open library came from that button: closing it returns there instead of scrolling to the grid's end. */
      private boolean libraryFromTopBar;
@@ -1962,7 +1973,7 @@ index eda36c89..1bac4215 100644
      /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
      private boolean libraryFromVpnPill;
  
-@@ -3224,7 +3547,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3224,7 +3548,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          String target = bootToLiveTv ? liveTvPkg : app;
          if (!OpenOnStart.due(boot, prefs.getInt(OpenOnStart.BOOT_KEY, -1), target, getPackageName())) return false;
          if (!prefs.edit().putInt(OpenOnStart.BOOT_KEY, boot).commit()) return false;
@@ -1971,7 +1982,7 @@ index eda36c89..1bac4215 100644
          if (i == null) return false;
          return openWhenReady(i);
      }
-@@ -3234,7 +3557,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3234,7 +3558,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private void openStartAppOnWake() {
          String app = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getString(OpenOnStart.KEY, "");
          if (app.isEmpty() || app.equals(getPackageName())) return;
@@ -1980,7 +1991,7 @@ index eda36c89..1bac4215 100644
          if (i != null) openWhenReady(i);
      }
  
-@@ -3299,7 +3622,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3299,7 +3623,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
       *  source number; "HW8=-" leaves that input out of the Inputs menu (a port the board reports but the set
       *  does not have). Returns the number, -1 for a left-out input, or null when the input is not listed. */
      private Integer mappedSource(String inputId) {
@@ -2014,7 +2025,7 @@ index eda36c89..1bac4215 100644
      }
  
      /** Switches to a passthrough input (HDMI, AV). An input mapped in `input_sources` is opened by sending
-@@ -3702,8 +4050,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3702,8 +4051,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (moduleCards) addSettingsMenuRow(rows, popup, R.string.module_cards, this::showModuleCards);
          if (dockRow) addSettingsMenuRow(rows, popup, R.string.dock_edit, this::startDockEdit);
          addSettingsMenuRow(rows, popup, R.string.reorder, this::toggleReorder);
@@ -2029,7 +2040,7 @@ index eda36c89..1bac4215 100644
          panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
          popup.setWidth(Math.max((int) (200 * density), panel.getMeasuredWidth()));
          // Hebrew puts Settings at the left of the header: grow the menu inward from it.
-@@ -3853,10 +4206,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3853,10 +4207,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                      .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
          }
@@ -2313,6 +2324,52 @@ index 5bdfead7..b807406e 100644
      /** The app's TV entry point, or its phone one; null when it is uninstalled or disabled, so Home stays. */
      static Intent intent(PackageManager pm, String pkg) {
          Intent i = pm.getLeanbackLaunchIntentForPackage(pkg);
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/QuietBehind.java b/launcher/app/src/main/java/com/gathin/tvhome/QuietBehind.java
+new file mode 100644
+index 00000000..bfe1a4e8
+--- /dev/null
++++ b/launcher/app/src/main/java/com/gathin/tvhome/QuietBehind.java
+@@ -0,0 +1,40 @@
++package com.gathin.tvhome;
++
++import android.content.Context;
++import android.media.AudioFocusRequest;
++import android.media.AudioManager;
++import android.media.session.MediaController;
++
++/**
++ * CleanTV/VGS: hush the app left playing behind Home (feedback 01/11 and 03/11/2026: "bấm Home mở app khác, tiếng app
++ * cũ vẫn chạy ngầm", "tắt tivi mà TV360 vẫn phát"). The stock launchers take audio focus for their own trailers, so
++ * the players that only stop on focus loss went quiet there. Off with "pause_behind_home": false, for music kept on.
++ */
++final class QuietBehind {
++    static final String KEY = "pause_behind_home";
++
++    private QuietBehind() {
++    }
++
++    static void run(Context ctx) {
++        if (!Weather.flag(ctx, KEY, true)) return;
++        // Sessions first (when the now-playing listener is allowed): the player pauses as its own button would.
++        for (MediaController c : NowPlaying.active(ctx)) {
++            if (!NowPlaying.playing(c)) continue;
++            try {
++                c.getTransportControls().pause();
++            } catch (RuntimeException ignored) {
++            }
++        }
++        // Then a permanent focus gain, given straight back: every player that honours focus loss stops.
++        AudioManager audio = ctx.getSystemService(AudioManager.class);
++        if (audio == null) return;
++        AudioFocusRequest request = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
++                .setOnAudioFocusChangeListener(change -> { })
++                .build();
++        try {
++            if (audio.requestAudioFocus(request) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) audio.abandonAudioFocusRequest(request);
++        } catch (RuntimeException ignored) {
++        }
++    }
++}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java b/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java
 index 7cd9e4db..624e2ec3 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/RemoteKeys.java

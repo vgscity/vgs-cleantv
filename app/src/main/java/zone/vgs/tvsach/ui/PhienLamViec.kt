@@ -175,6 +175,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     var doiHang by mutableStateOf(0)
     /** Nút "Đang phát" trên Home sạch (now_playing của bản vá launcher), mặc định bật. */
     var nutDangPhat by mutableStateOf(true)
+    var dungTiengNen by mutableStateOf(true)
     /** Cỡ chữ cụm đồng hồ / ngày / âm lịch / thời tiết (header_scale của bản vá launcher, %), góp ý 24/10/2026. */
     var coChuDau by mutableStateOf(100)
     /** Mọi app trên một hàng cuộn ngang, không lưới bên dưới (single_row của launcher 2.8, cần dock_row). */
@@ -1049,6 +1050,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         hienThongSo = j.optBoolean("show_stats", false)
         doiHang = if (j.optBoolean("rows_middle", false)) HANG_GIUA else if (cuaTheme("rows_offset_dp")) 0 else j.optInt("rows_offset_dp", 0)
         nutDangPhat = j.optBoolean("now_playing", true)
+        dungTiengNen = j.optBoolean("pause_behind_home", true)
         coChuDau = if (cuaTheme("header_scale")) 100 else j.optInt("header_scale", 100)
         motHang = !cuaTheme("single_row") && j.optBoolean("single_row", false)
         anLoiChao = !cuaTheme("show_greeting") && !j.optBoolean("show_greeting", true)
@@ -1145,7 +1147,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         val loiCai = io { tv.caiLauncher(apk, sl, cauHinh, anh, bo, nutInput, canDichVuPhim, { zone.vgs.tvsach.CapNhat.moAsset(ctx, "tvhome-xiaomi.apk").readBytes() }) { s -> ghiTuIo(s) } }
         // caiLauncher báo lỗi là đã tự trả Home gốc: huỷ canh gác trên tivi.
         if (loiCai != null) { io { tv.boGac() }; canDonBoNho = tv.thieuBoNho; error(loiCai) }
-        if (nutDangPhat) io { tv.choPhepDangPhat() }
+        if (nutDangPhat || dungTiengNen) io { tv.choPhepDangPhat() }
         if (dnsChanQc) io { tv.batDnsChanQc(sl) }
         if (nutManCho) io { tv.chuanBiManCho(sl) }
         io { tv.datManChoDong(manChoDong, sl) }
@@ -1250,6 +1252,8 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         // Giữa màn hình bỏ khoảng dời của theme (Kiểu Apple TV hạ dock 90dp) để hàng app nằm đúng giữa.
         if (doiHang == HANG_GIUA) { put("rows_middle", true); put("rows_offset_dp", 0) } else if (doiHang != 0) put("rows_offset_dp", doiHang)
         if (!nutDangPhat) put("now_playing", false)
+        // Về Home là app cũ thôi phát tiếng, tắt màn cũng vậy (góp ý 01/11 + 03/11/2026); tắt cho ai muốn nhạc chạy tiếp.
+        if (!dungTiengNen) put("pause_behind_home", false)
         if (coChuDau != 100) put("header_scale", coChuDau)
         if (motHang) { put("dock_row", true); put("single_row", true) }
         // Một hàng + thư viện app: viên Thư viện chen vào hàng app, đã có nút trên thanh trên cùng (góp ý Giun2911 25/10/2026).
@@ -1532,7 +1536,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         val dangChan = io { tv.dnsDangChan() }
         if (dnsChanQc && !dangChan) saoLuu?.let { sl -> io { tv.batDnsChanQc(sl) } }
         if (!dnsChanQc && dangChan) io { tv.tatDnsChanQc(saoLuu) }
-        if (nutDangPhat) io { tv.choPhepDangPhat() }
+        if (nutDangPhat || dungTiengNen) io { tv.choPhepDangPhat() }
         if (nutManCho) io { tv.chuanBiManCho(saoLuu) }
         io { tv.datManChoDong(manChoDong, saoLuu) }
         thongBao = t("Đang thử nút Home trên tivi…", "Testing the TV's Home button…")

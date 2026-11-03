@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.0.4",
+  "ngay": "2026-11-03",
+  "vi": [
+   "Bấm Home / tắt tivi là app cũ thôi phát tiếng (tắt được ở Tuỳ chỉnh → Dừng tiếng app cũ khi về Home)."
+  ],
+  "en": [
+   "Pressing Home / turning the TV off silences the app left playing (Options → Silence the app behind Home)."
+  ]
+ },
+ {
   "ban": "4.0.3",
   "ngay": "2026-11-02",
   "vi": [

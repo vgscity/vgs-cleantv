@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 113,
-  "versionName": "4.0.3",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.3.apk",
-  "co": 12486041,
-  "ghiChu": "Tuỳ chọn mới kiểu Projectivy: bấm nút Cài đặt của Home sạch là mở danh sách app, giữ OK vào cài đặt tivi, nút Menu ra menu cũ (thẻ Tuỳ chỉnh → Nút Cài đặt mở Thư viện).",
-  "ghiChuEn": "New Projectivy-style option: pressing Home's Settings button lists every app, holding OK opens the TV settings, Menu shows the old menu (Options tab → Settings button opens the library).",
-  "ngay": "2026-11-02"
+  "versionCode": 114,
+  "versionName": "4.0.4",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.4.apk",
+  "co": 12486841,
+  "ghiChu": "Bấm Home hay tắt tivi là app đang phát phim / nhạc tự dừng tiếng, như Home gốc. Ai muốn nhạc chạy tiếp thì tắt ở thẻ Tuỳ chỉnh → Dừng tiếng app cũ khi về Home.",
+  "ghiChuEn": "Pressing Home or turning the TV off now pauses whatever was playing, like the stock Home. To keep music going, turn off Options tab → Silence the app behind Home.",
+  "ngay": "2026-11-03"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "14732b68b1ee6cb6",
+   "phienBan": "6753112ae596e4f1",
    "url": "/ota/du-lieu.json",
    "co": 2458766,
-   "tuBan": 113
+   "tuBan": 114
   },
   "tvhome.apk": {
-   "phienBan": "439fe2e1ed374337",
+   "phienBan": "09282157308d0a61",
    "url": "/ota/tvhome.apk",
-   "co": 707677,
-   "tuBan": 113
+   "co": 708081,
+   "tuBan": 114
   }
  }
 }
