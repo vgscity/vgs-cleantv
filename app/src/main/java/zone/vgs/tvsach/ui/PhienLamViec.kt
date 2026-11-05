@@ -1663,11 +1663,12 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         man = Man.KET_NOI
     }
 
-    fun chayKhoiPhuc(goLauncher: Boolean) = chay(t("Đang khôi phục…", "Restoring…")) {
+    /** batTatCa: bật lại cả gói đang tắt ngoài bản sao lưu — gói lần dọn trước tắt bị lần dọn sau coi là "vốn đã tắt" (05/11/2026, góp ý ngocnd156). */
+    fun chayKhoiPhuc(goLauncher: Boolean, batTatCa: Boolean = false) = chay(t("Đang khôi phục…", "Restoring…")) {
         val info = thongTin ?: return@chay
         val sl = kho.doc(info.khoaLuu) ?: error(t("Tivi này chưa có bản sao lưu trong máy.", "This phone has no backup for this TV."))
         nhatKy.clear()
-        val loiKp = io { tv.khoiPhuc(sl, goLauncher) { s -> ghiTuIo(s) } }
+        val loiKp = io { tv.khoiPhuc(sl, goLauncher) { s -> ghiTuIo(s) } + (if (batTatCa) tv.batLaiMoiGoiTat { s -> ghiTuIo(s) } else emptyList()) }
         veApp()
         zone.vgs.tvsach.Dem.gui(ctx, "khoi-phuc", tenTiviDem(), sl.daTatBoiApp.size)
         loiKp.forEach { ghi(t("Lỗi: $it", "Error: $it")) }

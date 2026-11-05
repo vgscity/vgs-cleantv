@@ -1177,12 +1177,8 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         sh("for p in \$(pm list packages -d | cut -d: -f2); do dumpsys package \$p | grep -q 'User 0:.*enabled=3' && echo \$p; done")
             .lines().map { it.trim() }.filter { TEN_GOI.matches(it) }.sorted()
 
-    /**
-     * Khôi phục khi KHÔNG có bản sao lưu (gỡ app, đổi máy, người khác dọn — 22/10/2026): bật lại mọi gói đang tắt kiểu
-     * disable-user (kể cả gói chủ tivi tự tắt trước đó, màn hình đã hỏi xác nhận), bỏ dịch vụ trợ năng của Home sạch,
-     * trả DNS AdGuard của app về tự động, đặt lại Home hệ thống của hãng; tuỳ chọn gỡ Home sạch.
-     */
-    fun khoiPhucKhongSaoLuu(goLauncher: Boolean, bao: (String) -> Unit): List<String> {
+    /** Bật lại mọi gói đang tắt kiểu disable-user; trả danh sách lỗi. */
+    fun batLaiMoiGoiTat(bao: (String) -> Unit): List<String> {
         val loi = mutableListOf<String>()
         val ds = goiTatBoiNguoiDung()
         ds.forEachIndexed { i, p ->
@@ -1190,6 +1186,16 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
             val out = runCatching { sh("pm enable --user 0 $p") }.getOrElse { "${it.message}" }
             if (!out.contains("enabled")) loi += "$p: ${out.trim()}"
         }
+        return loi
+    }
+
+    /**
+     * Khôi phục khi KHÔNG có bản sao lưu (gỡ app, đổi máy, người khác dọn — 22/10/2026): bật lại mọi gói đang tắt kiểu
+     * disable-user (kể cả gói chủ tivi tự tắt trước đó, màn hình đã hỏi xác nhận), bỏ dịch vụ trợ năng của Home sạch,
+     * trả DNS AdGuard của app về tự động, đặt lại Home hệ thống của hãng; tuỳ chọn gỡ Home sạch.
+     */
+    fun khoiPhucKhongSaoLuu(goLauncher: Boolean, bao: (String) -> Unit): List<String> {
+        val loi = batLaiMoiGoiTat(bao).toMutableList()
         nhaNutHome(null)
         if (sh("settings get global private_dns_specifier").trim() == "dns.adguard-dns.com") {
             bao(t("Trả DNS về tự động…", "Setting DNS back to automatic…"))

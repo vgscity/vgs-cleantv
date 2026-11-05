@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.0.6",
+  "ngay": "2026-11-05",
+  "vi": [
+   "Màn Khôi phục có thêm ô Bật lại cả app tắt từ lần dọn trước: dọn nhiều lần vẫn đưa tivi về đúng như trước khi dùng CleanTV."
+  ],
+  "en": [
+   "The Restore screen adds Also re-enable apps from earlier cleanups, so several cleanups still restore the TV fully."
+  ]
+ },
+ {
   "ban": "4.0.5",
   "ngay": "2026-11-05",
   "vi": [

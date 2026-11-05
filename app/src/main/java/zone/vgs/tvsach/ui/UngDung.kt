@@ -1655,11 +1655,15 @@ private fun ManKhoiPhuc(vm: PhienLamViec) = Cuon {
             (if (sl.launcherDaCai) t(", trả Home gốc", ", restore the stock Home") else "") +
             (if (sl.dnsDaDoi) t(", trả DNS", ", restore DNS") else "") + ".")
     var goHome by remember { mutableStateOf(true) }
-    if (sl.launcherDaCai) The {
-        Hang(t("Gỡ luôn Home sạch", "Also uninstall the clean Home"), t("Bỏ chọn để giữ Home sạch trên tivi", "Untick to keep it on the TV"), goHome) { goHome = it }
+    var batTatCa by remember { mutableStateOf(false) }
+    The {
+        if (sl.launcherDaCai) Hang(t("Gỡ luôn Home sạch", "Also uninstall the clean Home"), t("Bỏ chọn để giữ Home sạch trên tivi", "Untick to keep it on the TV"), goHome) { goHome = it }
+        Hang(t("Bật lại cả app tắt từ lần dọn trước", "Also re-enable apps from earlier cleanups"),
+            t("Dọn nhiều lần thì bản sao lưu chỉ nhớ lần gần nhất. Tích để bật lại MỌI app đang tắt, kể cả app bạn tự tắt trước khi dùng CleanTV.",
+                "With several cleanups the backup only covers the latest. Tick to re-enable EVERY disabled app, including ones you disabled yourself before CleanTV."), batTatCa) { batTatCa = it }
     }
     NutChinh(if (vm.dangBan) t("Đang khôi phục…", "Restoring…") else t("Khôi phục", "Restore"), enabled = !vm.dangBan, icon = Icons.Rounded.Restore) {
-        vm.chayKhoiPhuc(sl.launcherDaCai && goHome)
+        vm.chayKhoiPhuc(sl.launcherDaCai && goHome, batTatCa)
     }
     vm.nhatKy.takeLast(4).forEach { Text(it, fontSize = 12.sp, fontFamily = FontFamily.Monospace, color = ChuPhu) }
     TheKichBan(vm)

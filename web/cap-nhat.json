@@ -1,11 +1,11 @@
 {
  "app": {
-  "versionCode": 115,
-  "versionName": "4.0.5",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.5.apk",
-  "co": 12486985,
-  "ghiChu": "Tuỳ chọn chỉ hiện dock trên Home (mọi app khác mở từ Thư viện); màn Nâng cao nhẹ hơn, hết treo trên tivi yếu.",
-  "ghiChuEn": "Option to show only the dock on Home (everything else opens from the Library); lighter Advanced screen, no more freezing on slow TVs.",
+  "versionCode": 116,
+  "versionName": "4.0.6",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.6.apk",
+  "co": 12503369,
+  "ghiChu": "Khôi phục: thêm lựa chọn bật lại cả app tắt từ lần dọn trước.",
+  "ghiChuEn": "Restore: new option to also re-enable apps from earlier cleanups.",
   "ngay": "2026-11-05"
  },
  "duLieu": {
@@ -13,13 +13,13 @@
    "phienBan": "577087d1c9b6721d",
    "url": "/ota/du-lieu.json",
    "co": 2458766,
-   "tuBan": 115
+   "tuBan": 116
   },
   "tvhome.apk": {
    "phienBan": "bbbe2c305bff8d19",
    "url": "/ota/tvhome.apk",
    "co": 708157,
-   "tuBan": 115
+   "tuBan": 116
   }
  }
 }
