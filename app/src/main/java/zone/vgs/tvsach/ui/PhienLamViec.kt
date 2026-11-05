@@ -367,6 +367,8 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     var thuVienTrongMenu by mutableStateOf(false)
     /** Bấm nút Cài đặt mở Thư viện app, giữ vào cài đặt tivi, kiểu Projectivy (góp ý thangmath 02/11/2026). */
     var nutCaiDatThuVien by mutableStateOf(false)
+    /** Home chỉ còn dock, app khác mở từ Thư viện (dock_only, góp ý ngocnd156 04/11/2026). */
+    var chiHienDock by mutableStateOf(false)
     var dongHoKhiYen by mutableStateOf(0)
     var tiviYeu by mutableStateOf(false)
     var hieuUngKinh by mutableStateOf(false)
@@ -1043,6 +1045,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         thuVienApp = j.optBoolean("app_library", false)
         thuVienTrongMenu = thuVienApp && !j.optBoolean("library_button", true)
         nutCaiDatThuVien = thuVienApp && j.optBoolean("settings_button_library", false)
+        chiHienDock = thuVienApp && j.optBoolean("dock_only", false)
         dongHoKhiYen = j.optInt("home_idle_clock_minutes", 0)
         tiviYeu = j.optBoolean("reduced_motion", false)
         hieuUngKinh = !cuaTheme("dock_glass") && j.optBoolean("dock_glass", false)
@@ -1241,6 +1244,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (thuVienApp && (thuVienTrongMenu || nutCaiDatThuVien)) put("show_library_pill", false)
         // Nút Cài đặt thành lối vào Thư viện: bấm mở danh sách app, giữ vào cài đặt tivi, nút Menu trên nó ra menu cũ.
         if (thuVienApp && nutCaiDatThuVien) put("settings_button_library", true)
+        if (thuVienApp && chiHienDock) put("dock_only", true)
         if (dongHoKhiYen > 0) put("home_idle_clock_minutes", dongHoKhiYen)
         if (tiviYeu) put("reduced_motion", true)
         if (hieuUngKinh) { put("dock_glass", true); put("app_glow", true) }

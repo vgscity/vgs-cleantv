@@ -1,5 +1,17 @@
 [
  {
+  "ban": "4.0.5",
+  "ngay": "2026-11-05",
+  "vi": [
+   "Tuỳ chỉnh → Chỉ hiện dock trên Home: Home chỉ còn hàng dock, mọi app khác mở từ Thư viện.",
+   "Màn Nâng cao chỉ dựng các dòng đang hiện, gõ tìm không còn treo trên tivi yếu."
+  ],
+  "en": [
+   "Options → Only the dock on Home: Home keeps just the dock row, everything else opens from the Library.",
+   "The Advanced screen only renders visible rows, so searching no longer freezes slow TVs."
+  ]
+ },
+ {
   "ban": "4.0.4",
   "ngay": "2026-11-03",
   "vi": [
