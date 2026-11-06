@@ -878,6 +878,8 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     var dsGhiChu by mutableStateOf("")
     var dsLienHe by mutableStateOf("")
     var dsDaGui by mutableStateOf(false)
+    /** Đã nhắc "chưa ghi email" một lần; bấm Gửi lần nữa là gửi không email. */
+    var dsHoiEmail by mutableStateOf(false)
 
     /** Đọc lại gói đang tắt trên tivi rồi gửi kèm model + đánh giá (người dùng tự bấm). */
     fun guiDanhSach() = chay(t("Đang gửi danh sách…", "Sending the list…")) {
@@ -1712,8 +1714,13 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     val chonBatLai = androidx.compose.runtime.mutableStateMapOf<String, Boolean>()
     var batLaiBao by mutableStateOf("")
 
+    /** Gói tắt kiểu disable-user trong dsTatTv; gói còn lại là tắt kiểu khác (hãng tắt sẵn hoặc pm disable). */
+    var dsTatNguoiDung by mutableStateOf<Set<String>>(emptySet())
+
+    private fun docLaiDsTat() { dsTatTv = tv.goiDangTat(); dsTatNguoiDung = tv.goiTatBoiNguoiDung().toSet() }
+
     fun docDsTat() = chay(t("Đang đọc app đang tắt trên tivi…", "Reading disabled apps on the TV…")) {
-        dsTatTv = io { tv.goiTatBoiNguoiDung() }; chonBatLai.clear(); batLaiBao = ""
+        io { docLaiDsTat() }; chonBatLai.clear(); batLaiBao = ""
     }
 
     fun batLaiDaChon() = chay(t("Đang bật lại…", "Re-enabling…")) {
@@ -1724,7 +1731,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             thongBao = t("Bật lại ${i + 1}/${ds.size}: $p", "Re-enabling ${i + 1}/${ds.size}: $p")
             if (io { tv.batLaiGoi(p, sl) }) ok++
         }
-        dsTatTv = io { tv.goiTatBoiNguoiDung() }; chonBatLai.clear()
+        io { docLaiDsTat() }; chonBatLai.clear()
         batLaiBao = if (ok == ds.size) t("Đã bật lại $ok app.", "Re-enabled $ok apps.") else t("Bật lại được $ok/${ds.size} app; app còn lại tivi không cho bật.", "Re-enabled $ok/${ds.size}; the TV refused the rest.")
         zone.vgs.tvsach.Dem.gui(ctx, "khoi-phuc", tenTiviDem(), ok, "tung-app")
         if (sl != null) saoLuu = sl

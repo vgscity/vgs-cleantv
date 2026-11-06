@@ -1725,7 +1725,11 @@ private fun TheBatTungApp(vm: PhienLamViec) {
                 Checkbox(chon, { vm.chonBatLai[p] = it })
                 Column(Modifier.weight(1f)) {
                     Text(tenDep(p), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
-                    Text(p + if (p in cuaCleanTv) t(" · do CleanTV tắt", " · disabled by CleanTV") else "", fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = ChuPhu, maxLines = 1)
+                    Text(p + when {
+                        p in cuaCleanTv -> t(" · do CleanTV tắt", " · disabled by CleanTV")
+                        p !in vm.dsTatNguoiDung -> t(" · tắt kiểu khác, có thể hãng tắt sẵn", " · disabled another way, maybe by the maker")
+                        else -> ""
+                    }, fontSize = 11.sp, fontFamily = FontFamily.Monospace, color = ChuPhu, maxLines = 2)
                 }
             }
         }
@@ -2007,6 +2011,8 @@ private fun TheGuiDanhSach(vm: PhienLamViec, baoLoi: Boolean = false) {
         if (vm.dsDaGui) {
             Phu(if (baoLoi) t("Đã gửi, cảm ơn bạn! VGS sẽ xem và trả lời qua email nếu bạn có ghi.", "Sent, thank you! VGS will look into it and reply by email if you left one.")
                 else t("Đã gửi, cảm ơn bạn! VGS sẽ xem và thêm tivi này vào danh sách.", "Sent, thank you! VGS will review it and add this TV to the lists."), Xanh)
+            // Gửi lại được (06/11/2026, ngocnd156: gửi xong thoát ra vào lại không thấy chỗ gửi nữa).
+            NutPhu(t("Gửi lần nữa", "Send again"), Icons.Rounded.Refresh) { vm.dsDaGui = false; vm.dsHoiEmail = false }
             return@The
         }
         if (baoLoi) Phu(t("Gặp lỗi trên tivi này? Gửi cho VGS model tivi, gói đang tắt và chẩn đoán Home (Home mặc định, khởi động, nút Home) đọc từ chính tivi, không cần điện thoại. Không gửi tên hay danh sách app bạn cài; ghi email nếu muốn VGS trả lời.",
@@ -2026,7 +2032,13 @@ private fun TheGuiDanhSach(vm: PhienLamViec, baoLoi: Boolean = false) {
             isError = vm.dsLienHe.isNotEmpty() && !laEmail(vm.dsLienHe),
             label = { Text(t("Email để VGS hỏi lại (không bắt buộc)", "Email to reach you (optional)")) })
         NutPhu(if (baoLoi) t("Gửi báo lỗi cho VGS", "Send the report to VGS") else t("Gửi danh sách gói cho VGS", "Send the package list to VGS"),
-            if (baoLoi) Icons.Rounded.BugReport else Icons.Rounded.Share, enabled = vm.dsLienHe.isEmpty() || laEmail(vm.dsLienHe)) { if (!vm.dangBan) vm.guiDanhSach() }
+            if (baoLoi) Icons.Rounded.BugReport else Icons.Rounded.Share, enabled = vm.dsLienHe.isEmpty() || laEmail(vm.dsLienHe)) {
+            // Chưa ghi email thì hỏi lại một lần (06/11/2026: trên tivi bấm Gửi là đi luôn, người dùng chưa kịp ghi email).
+            if (vm.dsLienHe.isEmpty() && !vm.dsHoiEmail) vm.dsHoiEmail = true
+            else if (!vm.dangBan) vm.guiDanhSach()
+        }
+        if (vm.dsHoiEmail && vm.dsLienHe.isEmpty()) Phu(t("Chưa có email nên VGS không trả lời bạn được. Ghi email vào ô trên rồi bấm Gửi, hoặc bấm Gửi lần nữa để gửi không cần email.",
+            "Without an email VGS can't reply. Add one above and press Send, or press Send again to send without it."), Hong)
     }
 }
 

@@ -1,5 +1,21 @@
 [
  {
+  "ban": "4.0.7",
+  "ngay": "2026-11-06",
+  "vi": [
+   "Khôi phục và Bật lại app: gói nào tivi kẹt quá 20 giây thì bỏ qua và báo tên, không phải rút điện.",
+   "Bật lại từng app liệt kê cả gói tắt kiểu khác (hãng tắt sẵn), có ghi chú để bạn tự chọn.",
+   "Gửi danh sách / báo lỗi: chưa ghi email thì nhắc một lần; gửi xong có nút Gửi lần nữa.",
+   "Mẫu Sony VU3 ghi thêm tên KD-43X75K / 50X75K / 65X75K cho dễ tìm."
+  ],
+  "en": [
+   "Restore and re-enable: a package the TV is stuck on for over 20 seconds is skipped and named, no more pulling the plug.",
+   "Re-enable single apps also lists packages disabled another way (often by the maker), marked so you can choose.",
+   "Send list / report: reminds you once if there is no email; after sending there is a Send again button.",
+   "The Sony VU3 list also names KD-43X75K / 50X75K / 65X75K so it is easier to find."
+  ]
+ },
+ {
   "ban": "4.0.6",
   "ngay": "2026-11-05",
   "vi": [

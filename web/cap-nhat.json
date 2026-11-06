@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 116,
-  "versionName": "4.0.6",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.6.apk",
-  "co": 12503369,
-  "ghiChu": "Khôi phục: thêm lựa chọn bật lại cả app tắt từ lần dọn trước.",
-  "ghiChuEn": "Restore: new option to also re-enable apps from earlier cleanups.",
-  "ngay": "2026-11-05"
+  "versionCode": 117,
+  "versionName": "4.0.7",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.7.apk",
+  "co": 12503405,
+  "ghiChu": "Khôi phục không còn treo khi tivi kẹt lúc bật gói; Bật lại từng app hiện mọi gói đang tắt; gửi báo cáo nhắc ghi email.",
+  "ghiChuEn": "Restore no longer hangs on a stuck package; Re-enable single apps lists every disabled package; reports remind you to add an email.",
+  "ngay": "2026-11-06"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "577087d1c9b6721d",
+   "phienBan": "2f7a72f676027d06",
    "url": "/ota/du-lieu.json",
-   "co": 2458766,
-   "tuBan": 116
+   "co": 2458812,
+   "tuBan": 117
   },
   "tvhome.apk": {
    "phienBan": "bbbe2c305bff8d19",
    "url": "/ota/tvhome.apk",
    "co": 708157,
-   "tuBan": 116
+   "tuBan": 117
   }
  }
 }

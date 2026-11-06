@@ -48,6 +48,12 @@ def parse(path):
     return header, entries
 
 
+# Tên máy người dùng hay tìm mà header upstream không ghi (06/11/2026, ngocnd156: KD-43X75K không thấy mẫu VU3).
+TEN_THEM = {
+    'sony-bravia-vu3': 'cũng là KD-43X75K / KD-50X75K / KD-65X75K',
+}
+
+
 def main():
     src, out = sys.argv[1], sys.argv[2]
     ex_dir = os.path.join(src, 'examples')
@@ -72,7 +78,7 @@ def main():
             kept.setdefault(p, []).append(name)
         m = {
             'id': name,
-            'ten': header[0] if header else name,
+            'ten': (header[0] if header else name) + (f" ({TEN_THEM[name]})" if name in TEN_THEM else ''),
             'header': '\n'.join(header),
             'goi': entries,
         }

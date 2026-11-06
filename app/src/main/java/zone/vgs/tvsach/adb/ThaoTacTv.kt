@@ -1165,13 +1165,27 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
 
     fun xoaSaoLuuTrenTv() { runCatching { sh("rm -f $TEP_SAO_LUU_TV") } }
 
+    /**
+     * Bật một gói, chờ tối đa [giay] giây (06/11/2026, Sony VU3 ngocnd156: pm enable treo 30 phút, phải rút điện).
+     * Không dựa vào lệnh timeout (Android 6 không có): chạy nền rồi tự canh. Treo thì trả "TREO", tivi có thể vẫn bật xong sau đó.
+     */
+    fun batGoiCoHan(p: String, giay: Int = 20): String = runCatching {
+        sh("f=/data/local/tmp/cleantv-bat; pm enable --user 0 $p > \$f 2>&1 & k=\$!; i=0; " +
+            "while kill -0 \$k 2>/dev/null && [ \$i -lt $giay ]; do sleep 1; i=\$((i+1)); done; " +
+            "if kill -0 \$k 2>/dev/null; then kill \$k 2>/dev/null; echo TREO; else cat \$f; fi; rm -f \$f")
+    }.getOrElse { "${it.message}" }
+
     /** Gói đang bị tắt bằng tay / bằng shell (enabled=3: disable-user), không gồm gói hãng tắt sẵn từ xưởng. */
     /** Bật lại một gói; trả true khi tivi báo đã bật. Có bản sao lưu thì bỏ gói đó khỏi danh sách CleanTV đã tắt. */
     fun batLaiGoi(p: String, sl: BanSaoLuu?): Boolean {
-        val ok = runCatching { sh("pm enable --user 0 $p") }.getOrDefault("").contains("enabled")
+        val ok = batGoiCoHan(p).contains("enabled")
         if (ok && sl != null && p in sl.daTatBoiApp) { sl.daTatBoiApp -= p; luuSaoLuu(sl) }
         return ok
     }
+
+    /** Mọi gói đang tắt, kể cả kiểu khác disable-user (06/11/2026: Sony VU3 còn 7 gói m2.* tắt mà danh sách cũ không thấy). */
+    fun goiDangTat(): List<String> =
+        sh("pm list packages -d").lines().map { it.trim().removePrefix("package:") }.filter { TEN_GOI.matches(it) }.sorted()
 
     fun goiTatBoiNguoiDung(): List<String> =
         sh("for p in \$(pm list packages -d | cut -d: -f2); do dumpsys package \$p | grep -q 'User 0:.*enabled=3' && echo \$p; done")
@@ -1183,8 +1197,8 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         val ds = goiTatBoiNguoiDung()
         ds.forEachIndexed { i, p ->
             bao(t("Bật lại ${i + 1}/${ds.size}: $p", "Re-enabling ${i + 1}/${ds.size}: $p"))
-            val out = runCatching { sh("pm enable --user 0 $p") }.getOrElse { "${it.message}" }
-            if (!out.contains("enabled")) loi += "$p: ${out.trim()}"
+            val out = batGoiCoHan(p)
+            if (!out.contains("enabled")) loi += if (out.contains("TREO")) t("$p: tivi treo khi bật gói này, đã bỏ qua", "$p: the TV hung enabling it, skipped") else "$p: ${out.trim()}"
         }
         return loi
     }
@@ -1225,8 +1239,9 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         val ds = sl.daTatBoiApp.toList()
         ds.forEachIndexed { i, p ->
             bao(t("Bật lại ${i + 1}/${ds.size}: $p", "Re-enabling ${i + 1}/${ds.size}: $p"))
-            val out = runCatching { sh("pm enable --user 0 $p") }.getOrElse { t("lỗi ${it.message}", "error ${it.message}") }
-            if (out.contains("enabled")) { sl.daTatBoiApp -= p; luuSaoLuu(sl) } else loi += "$p: ${out.trim()}"
+            val out = batGoiCoHan(p)
+            if (out.contains("enabled")) { sl.daTatBoiApp -= p; luuSaoLuu(sl) }
+            else loi += if (out.contains("TREO")) t("$p: tivi treo khi bật gói này, đã bỏ qua", "$p: the TV hung enabling it, skipped") else "$p: ${out.trim()}"
         }
         if (sl.launcherDaCai) {
             bao(t("Trả Home gốc…", "Restoring the stock Home…"))
