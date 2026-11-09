@@ -386,6 +386,8 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
 
     // Máy chiếu: màn của hãng dò được + những màn đã ghim vào nút "Máy chiếu" trên Home sạch (comp → nhãn).
     var laMayChieu by mutableStateOf(false)
+    /** Máy chiếu chưa có danh sách đúng mẫu: màn Chọn gói không tích sẵn gì và hiện lời cảnh báo (4.0.8). */
+    var mayChieuKhongMau by mutableStateOf(false)
     var mayChieu by mutableStateOf<List<String>?>(null)
     val ghimMayChieu = mutableStateMapOf<String, String>()
     var dangDoMayChieu by mutableStateOf(false)
@@ -735,7 +737,10 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         val du = io { DuLieu.nap(ctx) }
         val ds = io { KeHoach.lap(du, mauChon, tt) }
         muc = ds
-        chon.clear(); ds.forEach { chon[it.pkg] = it.chonSan }
+        // 4.0.8 (Movie Legend Q10 Pro, doankhapro09 07/11/2026: dọn theo luật chung xong khởi động lại treo logo): máy chiếu
+        // chưa có danh sách đúng mẫu thì không tích sẵn gói nào — phần mềm máy chiếu khác tivi nhiều, chủ nhà tự chọn từng gói.
+        mayChieuKhongMau = laMayChieu && mauChon == null
+        chon.clear(); ds.forEach { chon[it.pkg] = it.chonSan && !mayChieuKhongMau }
         man = Man.CHON_GOI
     }
 
@@ -893,7 +898,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             .put("giu", org.json.JSONArray((ketQua?.boQua ?: emptyList()).map { it.first }))
         // Gửi từ app chạy trên tivi (29/10/2026): đánh dấu để biết không có điện thoại nào trong cuộc.
         val tuTv = if (zone.vgs.tvsach.ManHinh.laTv) "# app-tren-tivi\n" else ""
-        du.put("chanDoan", (tuTv + io { tv.chanDoanHome(goiHome) } + "\n# phim-home " + phimHomeGhi).take(3000))
+        du.put("chanDoan", (tuTv + io { tv.chanDoanHome(goiHome) } + "\n# phim-home " + phimHomeGhi).take(4500))
         val ok = io { zone.vgs.tvsach.Dem.guiDanhSach(ctx, du) }
         if (!ok) error(t("Chưa gửi được (mạng?). Thử lại sau nhé.", "Couldn't send (network?). Try again later."))
         dsDaGui = true

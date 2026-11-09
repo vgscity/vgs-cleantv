@@ -1,5 +1,31 @@
 [
  {
+  "ban": "4.0.8",
+  "ngay": "2026-11-09",
+  "vi": [
+   "Home sạch theo CleanYourTV mới nhất: 457 mẫu tivi (124 hãng), đồng hồ không đứng trên TCL, phím chuyển kênh ở Home không nhảy sang Live TV.",
+   "Kiểm nút Home khi chạy CleanTV ngay trên tivi không còn báo nhầm \"vẫn mở CleanTV\".",
+   "Tivi hỏi chọn Home mà có launcher hãng lạ: CleanTV tự tìm ra launcher gốc, không dừng ở \"0 Home gốc\".",
+   "Launcher gốc (PatchWall…) được tích sẵn khi Home sạch đã là Home.",
+   "Giữ OK trên ô app → \"Bỏ khỏi màn hình chính\" dùng được cả khi tắt Thư viện app.",
+   "Google TV: \"Chỉ hiện dock\" vẫn thay được app trong dock; dò phím remote chắc hơn.",
+   "Google TV: \"Mở một app khi bật tivi\" tự mở lại app nếu Home sạch đè lên trong 20 giây đầu.",
+   "Âm lịch ở đồng hồ màn hình chờ.",
+   "Máy chiếu chưa có danh sách mẫu: không tích sẵn gói nào, có cảnh báo."
+  ],
+  "en": [
+   "Clean Home follows the latest CleanYourTV: 457 TV lists (124 brands), clock no longer freezes on TCL, channel keys on Home no longer jump to Live TV.",
+   "The Home key check run on the TV itself no longer misreports \"still opens CleanTV\".",
+   "When the TV asks which Home to use and has an unknown maker launcher, CleanTV now finds it instead of stopping at \"0 stock homes\".",
+   "Stock launchers (PatchWall…) are pre-ticked once Clean Home is Home.",
+   "Hold OK on a tile → \"Remove from home screen\" works even with the App library off.",
+   "Google TV: dock-only mode can still replace dock apps; remote key learning is more reliable.",
+   "Google TV: \"Open an app at power-on\" reopens it if Clean Home covers it in the first 20 seconds.",
+   "Lunar date on the screensaver clock.",
+   "Projectors without a list: nothing is pre-ticked, with a warning."
+  ]
+ },
+ {
   "ban": "4.0.7",
   "ngay": "2026-11-06",
   "vi": [

@@ -115,7 +115,7 @@ export default {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(
         new Date().toISOString(), cat(b.may, 40), cat(b.ban, 10), cat(b.hang, 60), cat(b.model, 80), cat(b.device, 80), cat(b.android, 10),
         cat(b.mau, 80), b.danhGia === "on" ? "on" : "chua-on", cat(b.ghiChu, 1000), cat(b.lienHe, 120),
-        JSON.stringify(goi(b.goi, 400)), JSON.stringify(goi(b.giu, 100)), qg, String(b.chanDoan ?? "").replace(/[\u0000-\u0008]/g, "").slice(0, 3000)).run();
+        JSON.stringify(goi(b.goi, 400)), JSON.stringify(goi(b.giu, 100)), qg, String(b.chanDoan ?? "").replace(/[\u0000-\u0008]/g, "").slice(0, 4500)).run();
       return new Response("ok");
     }
     if (url.pathname === "/danh-sach" && req.method === "GET") {

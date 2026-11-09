@@ -402,5 +402,17 @@
  "glow_snap": {
   "ten": "Đổi màu quầng sáng ngay",
   "moTa": "Quầng sáng nền đổi sang màu app kế tiếp trong một khung hình thay vì mờ dần rồi hiện lại. Mỗi khung chuyển màu vẽ lại cả màn, nên tivi chip đồ hoạ yếu sẽ mượt hơn khi bật. Mặc định tắt."
+ },
+ "settings_key_clear_task": {
+  "ten": "Nút Cài đặt mở Cài đặt từ đầu",
+  "moTa": "Khi tắt bảng nhanh của nút Cài đặt: mở Cài đặt tivi từ màn đầu, bấm Quay lại là về Home. Dành cho bo mạch MediaTek mà nút bánh răng mở thẳng mục Hình ảnh & Âm thanh (mặc định tắt)."
+ },
+ "home_ignore_channel_keys": {
+  "ten": "Phím chuyển kênh không mở Live TV ở Home",
+  "moTa": "Đang ở Home thì phím Kênh +/− không làm gì, thay vì mở app truyền hình của tivi (Sony BRAVIA Android 9). Trong app khác phím vẫn chạy như cũ (mặc định tắt)."
+ },
+ "inputs_cec_state_only": {
+  "ten": "Chỉ hiện trạng thái kết nối theo CEC",
+  "moTa": "Trong bảng Nguồn vào, chỉ thiết bị CEC mới hiện Đã kết nối; cổng HDMI trần không hiện trạng thái. Dành cho tivi báo nhầm cổng (TCL UnionTV Android 9). Thiết bị không có CEC sẽ không hiện trạng thái (mặc định tắt)."
  }
 }

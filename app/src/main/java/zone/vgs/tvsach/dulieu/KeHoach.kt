@@ -36,6 +36,8 @@ data class TrangThaiGoi(
     val coBieuTuong: Set<String>,
     val homeHienTai: String,
     val banPhim: Set<String>,
+    /** Gói có màn HOME trên tivi (4.0.8: nhận ra launcher gốc như PatchWall mà không đoán theo tên). */
+    val coHome: Set<String> = emptySet(),
 )
 
 object KeHoach {
@@ -67,6 +69,9 @@ object KeHoach {
      */
     private val GIU_LOI = Regex("""^com\.(google\.)?android\.(ext\.services|ext\.shared|modulemetadata)$|^com\.google\.android\.overlay\.modules""")
     fun laGoiLoi(pkg: String) = GIU_LOI.containsMatchIn(pkg)
+
+    /** Tên gói Home sạch (bản thường + bản Xiaomi nội địa). */
+    private val HOME_SACH_GOI = setOf("com.gathin.tvhome", "com.ts.launcher")
 
     /**
      * Khối gói lõi của repo CleanYourTV (tools/disable.sh CORE_RE / CORE_OK, tests/test_core_packages.py, #884), chép
@@ -135,13 +140,19 @@ object KeHoach {
             val p = g.pkg
             if (!conBat(p) || laGoiCanGiu(p, tt) || p in ketQua) return@forEach
             val tk = du.thongKe[p] ?: ThongKeGoi(0, 0)
-            val laApp = p in tt.coBieuTuong
+            // 4.0.8 (Xiaomi AXSO2, sushil 07/11/2026): launcher gốc có biểu tượng (PatchWall com.mitv.tvhome.atv) mà mẫu ghi
+            // tắt — để chủ nhà tự chọn thì hay bị bỏ sót, rồi nó tự mở đè Home sạch lúc bật tivi. Home sạch đã là Home thì
+            // tích sẵn như gói thường của mẫu.
+            val launcherGoc = tt.homeHienTai in HOME_SACH_GOI && p in tt.coHome && !THEO_Y_RIENG.containsMatchIn(g.nhom)
+            val laApp = p in tt.coBieuTuong && !launcherGoc
             ketQua[p] = MucGoi(
                 pkg = p,
                 loai = if (laApp) LoaiMuc.UNG_DUNG else LoaiMuc.MAU,
                 nhom = g.nhom,
                 ghiChu = if (THEO_Y_RIENG.containsMatchIn(g.nhom))
                     listOf(t("Người làm danh sách tắt theo ý riêng.", "Off by the list author's own choice."), g.ghiChu).filter { it.isNotBlank() }.joinToString(" ")
+                else if (launcherGoc)
+                    listOf(t("Màn Home cũ của hãng: để bật thì có thể tự mở đè Home sạch lúc bật tivi.", "The maker's old Home: left on, it can open over the clean Home at power-on."), g.ghiChu).filter { it.isNotBlank() }.joinToString(" ")
                 else g.ghiChu,
                 soMauTat = tk.soMauTat, soMauGiu = tk.soMauGiu,
                 chonSan = !laApp && !THEO_Y_RIENG.containsMatchIn(g.nhom),

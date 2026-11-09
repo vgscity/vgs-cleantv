@@ -512,7 +512,7 @@
 {
 "khoa": "tile_menu",
 "kieu": "bool",
-"moTa": "Hold OK or press the remote's Menu key on a tile to open a small menu: Move, Remove from Home (with app_library) and App info. false (the default) keeps holding OK as a shortcut to the app's App info page and leaves Menu unchanged",
+"moTa": "Hold OK or press the remote's Menu key on a tile to open a small menu: Move, Remove from Home (with app_library) and App info. true by default since launcher 3.3; false keeps holding OK as a shortcut to the app's App info page and leaves Menu unchanged",
 "canThan": false,
 "ten": "Giữ OK để mở menu app",
 "moTaVi": "Giữ OK trên một app: menu Di chuyển, Thêm vào dock / Thay app khác, Bỏ khỏi Home, Thông tin app. CleanTV bật sẵn; tắt thì giữ OK mở thẳng trang Thông tin app."
@@ -558,9 +558,17 @@
 "moTaVi": "Màu viền sáng quanh app đang chọn khi bật giao diện lễ hội; mặc định vàng đèn dầu."
 },
 {
+"khoa": "settings_key_clear_task",
+"kieu": "bool",
+"moTa": "With settings_key_panel off, those buttons clear the TV Settings task before opening Settings, so Back goes Home. For boards whose firmware also opens its own page in that task from the same press: a Skyworth 2K NSTV (Google TV 14) gear sends KEYCODE_SETTINGS too, which com.mediatek.tv.service turns into Display & Sound under Settings (false by default)",
+"canThan": false,
+"ten": "Nút Cài đặt mở Cài đặt từ đầu",
+"moTaVi": "Khi tắt bảng nhanh của nút Cài đặt: mở Cài đặt tivi từ màn đầu, bấm Quay lại là về Home. Dành cho bo mạch MediaTek mà nút bánh răng mở thẳng mục Hình ảnh & Âm thanh (mặc định tắt)."
+},
+{
 "khoa": "settings_key_keycodes",
 "kieu": "ds-so",
-"moTa": "Remote buttons that open Settings, for HomeKeyService (TCL Google TV gear: [83])",
+"moTa": "Remote buttons that open Settings, for HomeKeyService (TCL Google TV gear: [83]). Every entry is a whole number of at least 1: one entry that is a word or a number under 1 and the launcher keeps config.xml's list instead of yours, so no button is added, and tools/manage.py's set refuses such a list before writing it",
 "canThan": true,
 "ten": "Nút remote mở Cài đặt",
 "moTaVi": "Mã nút trên remote dùng để mở Cài đặt (ví dụ nút bánh răng TCL Google TV: 83). Cần bật bắt phím Home."
@@ -584,7 +592,7 @@
 {
 "khoa": "input_key_keycodes",
 "kieu": "ds-so",
-"moTa": "More remote buttons that open the input switcher, for InputKeyService (KEYCODE_TV and KEYCODE_TV_INPUT always do)",
+"moTa": "More remote buttons that open the input switcher, for InputKeyService (KEYCODE_TV and KEYCODE_TV_INPUT always do). Every entry is a whole number of at least 1, and one the launcher cannot read as a keycode drops the whole list - tools/manage.py's set refuses one before writing it",
 "canThan": true,
 "ten": "Thêm nút remote mở Nguồn vào",
 "moTaVi": "Mã các nút remote khác cũng mở bảng chọn Nguồn vào (nút TV và TV_INPUT luôn mở)."
@@ -612,6 +620,14 @@
 "canThan": false,
 "ten": "Nhường phím cho tay cầm game",
 "moTaVi": "Bật thì khi có tay cầm game kết nối, dịch vụ bắt phím của Home sạch ngừng lọc phím để game nhận đủ nút (vd Steam Link với tay Xbox); các nút remote gán sẵn tạm không chạy tới khi rút tay cầm. Cần bật key_filter. Mặc định tắt."
+},
+{
+"khoa": "home_ignore_channel_keys",
+"kieu": "bool",
+"moTa": "true makes Channel Up/Down do nothing while Home is in front, where they would otherwise open the TV's Live TV app (Sony BRAVIA, Android 9). Inside other apps the keys work as before, and no key helper is needed. Off by default.",
+"canThan": false,
+"ten": "Phím chuyển kênh không mở Live TV ở Home",
+"moTaVi": "Đang ở Home thì phím Kênh +/− không làm gì, thay vì mở app truyền hình của tivi (Sony BRAVIA Android 9). Trong app khác phím vẫn chạy như cũ (mặc định tắt)."
 },
 {
 "khoa": "consume_volume_keys",
@@ -662,9 +678,17 @@
 "moTaVi": "Bảng chọn nguồn (HDMI, AV) chỉ hiện cổng có thiết bị đang cắm, các cổng trống gom vào \"Thêm cổng vào\"."
 },
 {
+"khoa": "inputs_cec_state_only",
+"kieu": "bool",
+"moTa": "Only CEC device rows in the Inputs list show a connection state (\"Steam Deck · HDMI 1\", Connected); bare HDMI ports show none. For TVs that put port states on the wrong port: TCL UnionTV (Android 9) reports its empty HDMI 1 as connected and a device on HDMI 2 nowhere, while its CEC device list stays right. A device without CEC shows no state (false by default)",
+"canThan": false,
+"ten": "Chỉ hiện trạng thái kết nối theo CEC",
+"moTaVi": "Trong bảng Nguồn vào, chỉ thiết bị CEC mới hiện Đã kết nối; cổng HDMI trần không hiện trạng thái. Dành cho tivi báo nhầm cổng (TCL UnionTV Android 9). Thiết bị không có CEC sẽ không hiện trạng thái (mặc định tắt)."
+},
+{
 "khoa": "clock_format",
 "kieu": "chu",
-"moTa": "The launcher's clocks (Home and the clock screensaver) in 12- or 24-hour time whatever the TV is set to; system (the default) follows the TV. Launcher settings' Clock row sets it too",
+"moTa": "The launcher's clocks (Home and the clock screensaver) in 12- or 24-hour time whatever the TV is set to; system (the default) follows the TV, and so does any other value, which is why tools/manage.py's set refuses one. Launcher settings' Clock row sets it too",
 "canThan": false,
 "ten": "Kiểu đồng hồ",
 "moTaVi": "12 hoặc 24 giờ cho đồng hồ trên Home và màn hình chờ đồng hồ, bất kể cài đặt tivi. system (mặc định) theo tivi."
@@ -706,7 +730,7 @@
 {
 "khoa": "glow_style",
 "kieu": "chu",
-"moTa": "Shape of the glow behind the focused app, in its colour: radial (default) or horizon, the colour washing down from the top edge to black; the cinematic shelf keeps its own",
+"moTa": "Shape of the glow behind the focused app, in its colour: radial (default) or horizon, the colour washing down from the top edge to black; the cinematic shelf keeps its own. Any other value falls back to radial; there is no value for \"none\", so a theme without a glow sets ambient_glow and app_glow to false",
 "canThan": false,
 "ten": "Kiểu ánh sáng sau app",
 "moTaVi": "Kiểu ánh sáng theo màu app phía sau app đang chọn: radial (toả tròn, mặc định) hoặc horizon (màu loang từ mép trên xuống)."
@@ -714,7 +738,7 @@
 {
 "khoa": "glass_style",
 "kieu": "chu",
-"moTa": "Look of the focus highlight: glass (default: a translucent slab with a bright top sheen, a crisp rim and a faint outer glow), rim (the crisp rim alone, no sheen, fill or glow, for a quiet focus over a wallpaper) or halo (the rim with a lighter outer glow)",
+"moTa": "Look of the focus highlight: glass (default: a translucent slab with a bright top sheen, a crisp rim and a faint outer glow), rim (the crisp rim alone, no sheen, fill or glow, for a quiet focus over a wallpaper) or halo (the rim with a lighter outer glow). Any other value falls back to glass",
 "canThan": false,
 "ten": "Kiểu viền ô đang chọn",
 "moTaVi": "glass (mặc định: tấm kính mờ có vệt sáng), rim (chỉ viền sắc, dịu nhất) hoặc halo (viền kèm ánh sáng nhẹ bên ngoài)."

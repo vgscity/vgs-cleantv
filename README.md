@@ -30,7 +30,7 @@
 ### App làm gì
 **Dọn tivi**
 - **Kết nối tivi qua Wi-Fi** bằng ADB: quét mạng hoặc gõ IP. Google TV đời mới thì ghép bằng mã 6 số (Gỡ lỗi không dây), app tự dò cổng. Trong app có hướng dẫn 7 bước kèm hình.
-- **So với 341 danh sách đã thử** của cộng đồng CleanYourTV (95 hãng: TCL, Sony, Xiaomi, Philips, Hisense, Skyworth, onn, Chromecast, hộp FPT / VNPT, máy chiếu…). Chưa khớp mẫu thì app gợi ý mẫu gần giống, tivi lạ thì dùng luật chung an toàn.
+- **So với 457 danh sách đã thử** của cộng đồng CleanYourTV (124 hãng: TCL, Sony, Xiaomi, Philips, Hisense, Skyworth, onn, Chromecast, hộp FPT / VNPT, máy chiếu…). Chưa khớp mẫu thì app gợi ý mẫu gần giống, tivi lạ thì dùng luật chung an toàn.
 - **Chỉ tắt, không gỡ** quảng cáo, theo dõi, app rác. App không đụng cổng HDMI, remote, bàn phím, CH Play, gói đang giữ Wi-Fi, gói lõi Android và Home đang dùng. Google Home / cast và tìm kiếm giọng nói không bao giờ được tích sẵn.
 - Gói nhiều người dùng cùng mẫu giữ lại thì app hỏi lại trước khi tắt. Lỡ tắt nhầm thì vào "Bật lại từng app": app đọc thẳng từ tivi, kể cả khi không còn bản sao lưu.
 - App cảnh báo khi kết nối nhầm vào điện thoại hoặc máy tính bảng, và báo khi giờ tivi lệch giờ điện thoại (Xiaomi bản Trung Quốc).
@@ -70,7 +70,7 @@
 Cần JDK 17 và Android SDK (compileSdk 35).
 
 ```bash
-scripts/dung-launcher.sh          # tải CleanYourTV, áp patches/launcher-vgs.patch, dựng Home sạch + dữ liệu 341 mẫu vào assets
+scripts/dung-launcher.sh          # tải CleanYourTV, áp patches/launcher-vgs.patch, dựng Home sạch + dữ liệu 457 mẫu vào assets
 ./gradlew assembleRelease         # thiếu ky.properties thì APK ký bằng khoá debug
 ./gradlew :app:testReleaseUnitTest
 ```
@@ -117,7 +117,7 @@ Báo lỗi, xin hỗ trợ tivi mới: [vgs.zone/gop-y](https://vgs.zone/gop-y) 
 ### What it does
 **Cleaning**
 - **Connects over Wi-Fi** with ADB: scan or type the IP. Newer Google TVs pair with a 6-digit code and the app finds the port. A 7-step picture guide is built in.
-- **Matches 341 tested lists** from the CleanYourTV community (95 brands). It suggests close models when yours isn't listed, and unknown TVs get safe general rules.
+- **Matches 457 tested lists** from the CleanYourTV community (124 brands). It suggests close models when yours isn't listed, and unknown TVs get safe general rules.
 - **Disables, never uninstalls** ads, tracking and junk. Leaves HDMI inputs, the remote, keyboards, Play Store, the Wi-Fi owner, core Android packages and the Home in use alone. Google Home / casting and voice search are never pre-ticked.
 - Asks again before disabling a package most owners of the same model kept. "Re-enable apps" reads what is disabled straight from the TV, even without a backup.
 - Warns when it is connected to a phone or tablet instead of a TV, and when the TV's clock is off from the phone's.

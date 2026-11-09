@@ -69,4 +69,17 @@ class KeHoachTest {
         }
         assertFalse(KeHoach.laGoiCanGiu("com.google.android.feedback", tt))
     }
+
+    /** 4.0.8 (Xiaomi AXSO2, sushil 07/11/2026): launcher gốc có biểu tượng mà mẫu ghi tắt được tích sẵn khi Home sạch đã là Home. */
+    @Test fun launcherGocCoBieuTuong_tichSanKhiHomeSachDaLaHome() {
+        val pw = "com.mitv.tvhome.atv"
+        val goc = du.mau.first { it.id == "xiaomi-mi-box-s" }
+        val mau = goc.copy(goi = goc.goi + GoiMau(pw, "Stock launcher", ""))
+        fun chon(home: String, coHome: Set<String>) = KeHoach.lap(du, mau,
+            TrangThaiGoi(mau.goi.map { it.pkg }.toSet(), emptySet(), coBieuTuong = setOf(pw), homeHienTai = home,
+                banPhim = emptySet(), coHome = coHome)).first { it.pkg == pw }.chonSan
+        assertTrue("Home sạch đã là Home: tích sẵn", chon("com.gathin.tvhome", setOf(pw)))
+        assertFalse("chưa có Home sạch: để chủ nhà chọn", chon("com.google.android.tvlauncher", setOf(pw)))
+        assertFalse("không có màn HOME (vd trình duyệt tên ...launcher): không tích", chon("com.gathin.tvhome", emptySet()))
+    }
 }

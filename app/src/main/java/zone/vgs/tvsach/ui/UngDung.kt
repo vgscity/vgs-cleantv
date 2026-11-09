@@ -849,6 +849,9 @@ private fun ManChonGoi(vm: PhienLamViec) {
                         modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)), color = Hong, trackColor = The2)
                     Phu(t("Đã tích sẵn gói an toàn. App có biểu tượng thì hỏi chủ nhà. Gói tivi cần (HDMI, remote, bàn phím, CH Play) app tự giữ, không hiện ở đây.",
                         "Safe packages are pre-ticked. Ask the owner about apps with icons. Packages the TV needs (HDMI, remote, keyboard, Play Store) are kept and not listed."))
+                    if (vm.mayChieuKhongMau) Text(t("Máy chiếu chưa có danh sách đúng mẫu nên app không tích sẵn gói nào. Phần mềm máy chiếu khác tivi nhiều: tắt nhầm gói của hãng có thể làm máy treo logo khi khởi động lại. Chỉ tắt gói bạn biết chắc là quảng cáo, và tắt ít một.",
+                        "No tested list for this projector, so nothing is pre-ticked. Projector software differs a lot from TVs: disabling the wrong maker package can leave it stuck on the logo after a restart. Only disable packages you know are ads, a few at a time."),
+                        color = Hong, fontSize = 13.sp)
                 }
             }
             LoaiMuc.entries.forEach { loai ->
