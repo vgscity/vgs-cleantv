@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.0.9",
+  "ngay": "2026-11-10",
+  "vi": [
+   "Tivi Sony BRAVIA (Android 8–9): bảng \"Cài đặt phát sóng\" hiện đè khi bấm Home không còn làm app trả tivi về Home gốc; Home sạch được giữ nguyên."
+  ],
+  "en": [
+   "Sony BRAVIA (Android 8–9): the \"Broadcast settings\" panel that shows over the screen on Home no longer makes the app put the stock Home back; the clean Home stays."
+  ]
+ },
+ {
   "ban": "4.0.8",
   "ngay": "2026-11-09",
   "vi": [

@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 118,
-  "versionName": "4.0.8",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.8.apk",
+  "versionCode": 119,
+  "versionName": "4.0.9",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.9.apk",
   "co": 12569917,
-  "ghiChu": "Home sạch theo CleanYourTV mới (457 mẫu tivi); kiểm nút Home không báo nhầm; Ẩn app ngay từ menu ô app; sửa dock và mở app khi bật tivi trên Google TV; âm lịch ở màn chờ.",
-  "ghiChuEn": "Clean Home follows the latest CleanYourTV (457 TV lists); Home key check no longer misreports; hide apps from the tile menu; dock and boot-app fixes on Google TV; lunar date on the screensaver clock.",
-  "ngay": "2026-11-09"
+  "ghiChu": "Sửa lỗi tivi Sony BRAVIA bị trả về Home gốc sau khi dọn",
+  "ghiChuEn": "Fixes Sony BRAVIA TVs being sent back to the stock Home after cleaning",
+  "ngay": "2026-11-10"
  },
  "duLieu": {
   "du-lieu.json": {
    "phienBan": "be45fbc7c5c44acb",
    "url": "/ota/du-lieu.json",
    "co": 2748545,
-   "tuBan": 118
+   "tuBan": 119
   },
   "tvhome.apk": {
    "phienBan": "7dbbd426df11c056",
    "url": "/ota/tvhome.apk",
    "co": 706521,
-   "tuBan": 118
+   "tuBan": 119
   }
  }
 }

@@ -986,8 +986,24 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
             // xem): phím Home chưa ăn, chưa phải Home cũ giành nút. Chờ rồi bấm lại thay vì báo hỏng ngay lượt đầu (25/10/2026:
             // Sony VH21 / BF1, Xiaomi MOOR2, onn 4K… báo "Nút Home vẫn mở com.android.tv.settings"; Sony VU1 "com.goodtoolapps.zeus").
             if (lan < 3 && pkg.isNotBlank() && pkg != SETUP && (pkg in KHONG_PHAI_HOME || pkg.contains("packageinstaller") || !coManHome(pkg))) {
+                // Bảng của hãng nằm đè mà phím Home không đóng (Sony BRAVIA Android 8–9: com.sony.dtv.tvsettingsbroadcast,
+                // athanh8807 09/11/2026, 6 lần từ 2.10): từ lượt hai bấm Back đóng nó rồi mới bấm Home lại.
+                if (lan >= 1 && !coManHome(pkg)) { sh("input keyevent KEYCODE_BACK"); Thread.sleep(800); sh("input keyevent KEYCODE_BACK") }
                 Thread.sleep(2000)
                 return@repeat
+            }
+            // Còn lại là một app KHÔNG có màn Home mà Home mặc định đã là Home sạch: chưa có gì chứng tỏ Home cũ giành nút.
+            // Thử từ màn khác (mở Cài đặt rồi bấm Home): ra Home sạch thì nút Home chạy đúng, chỉ là bảng kia không đóng
+            // bằng phím Home. Trước 4.0.9 nhánh này báo hỏng và trả Home gốc (Sony tvsettingsbroadcast).
+            if (pkg.isNotBlank() && pkg != SETUP && pkg !in HOME_GOC_BIET && !coManHome(pkg) && homeHienTai().startsWith("$pkgHome/")) {
+                bao(t("Màn '$pkg' không đóng bằng phím Home, thử bấm Home từ màn khác…", "'$pkg' doesn't close with the Home key, trying Home from another screen…"))
+                repeat(2) {
+                    sh("am start -a android.settings.SETTINGS >/dev/null 2>&1")
+                    Thread.sleep(1500)
+                    sh("input keyevent KEYCODE_HOME")
+                    Thread.sleep(2500)
+                    if (goiDangHien() == pkgHome) return KetQuaPhimHome(true, gianh, pkg, "man-de", daBatBatPhim)
+                }
             }
             if (lan == 3 || sl == null || pkg == SETUP || !nenTatVuiGianhHome(pkg)) return tra(pkg)
             bao(t("Nút Home vẫn mở '$pkg', tắt nó…", "The Home button still opens '$pkg', disabling it…"))
