@@ -1410,6 +1410,7 @@ private fun TheTuyChinh(vm: PhienLamViec) {
         }
         if (vm.cauHinhBao.isNotEmpty()) Phu(vm.cauHinhBao, Xanh)
     }
+    TheTaiKhoanVgs(vm, choLay = true)
     The(t("Tivi yếu & mạng", "Slow TVs & network"), Icons.Rounded.Speed) {
         Hang(t("Chế độ tivi yếu", "Slow TV mode"), t("Bớt hiệu ứng chuyển động cho tivi cũ, ít RAM", "Calmer motion for old, low-memory TVs"), vm.tiviYeu) { vm.tiviYeu = it }
         Hang(t("Hiệu ứng kính mờ", "Frosted glass effects"), t("Dock kính mờ, ánh sáng theo màu app", "Frosted dock, glow in the app's colour"), vm.hieuUngKinh) { vm.hieuUngKinh = it }
@@ -1596,6 +1597,7 @@ private fun ManXong(vm: PhienLamViec) = Cuon {
             Phu(t("Chưa chọn mà rời app quá $phut phút thì tivi tự tắt ADB.", if (phut == 1) "Leave the app for over a minute without choosing and the TV turns ADB off itself." else "Leave the app for over $phut minutes without choosing and the TV turns ADB off itself."))
         }
     }
+    if (vm.homeXong) TheTaiKhoanVgs(vm, choLay = false)
     The(t("Trước khi về", "Before you leave"), Icons.Rounded.Checklist) {
         BuocSo(1, t("Thử lại YouTube, Netflix, HDMI, Cài đặt, remote.", "Try YouTube, Netflix, HDMI, Settings and the remote."))
         BuocSo(2, t("Khởi động lại một lần xem gói nào tự bật lại.", "Reboot once to see if anything re-enables itself."))
@@ -1877,6 +1879,43 @@ private fun TheMayChieu(vm: PhienLamViec) {
             uri.openUri("https://vgs.zone/gop-y?tu=" + java.net.URLEncoder.encode(tu, "UTF-8"))
         }
         Phu(t("Đã chép sẵn danh sách, dán vào ô nội dung trong hộp góp ý.", "The list is copied — paste it into the feedback box."))
+    }
+}
+
+/**
+ * Lưu / lấy cấu hình tivi trong tài khoản VGS (12/11/2026). Hiện ở màn Xong (khi đã cài Home sạch) và dưới mục File cấu hình.
+ * Chưa kết nối: một nút, bấm là mở vgs.zone để đăng nhập + xác nhận rồi tự lưu.
+ */
+@Composable
+private fun TheTaiKhoanVgs(vm: PhienLamViec, choLay: Boolean) {
+    LaunchedEffect(Unit) { vm.napTaiKhoanVgs() }
+    The(t("Tài khoản VGS", "VGS account"), Icons.Rounded.CloudUpload) {
+        if (!vm.vgsDaKetNoi) Phu(t("Lưu cấu hình tivi này (giao diện, dock, thời tiết, nút remote, Nâng cao) vào tài khoản VGSZone miễn phí. Đổi tivi, lỡ khôi phục hay cài lại app thì lấy về một chạm.",
+            "Save this TV's setup (theme, dock, weather, remote keys, Advanced) to a free VGSZone account. New TV, a restore or a reinstall: get it back in one tap."))
+        else Phu(t("Đã kết nối" + (if (vm.vgsTen.isNotEmpty()) " tài khoản ${vm.vgsTen}" else "") + ".", "Connected" + (if (vm.vgsTen.isNotEmpty()) " as ${vm.vgsTen}" else "") + "."), Xanh)
+        if (vm.vgsCho) {
+            Phu(t("Đang chờ bạn đăng nhập và bấm Xác nhận trên vgs.zone… Xong thì quay lại app.", "Waiting for you to sign in and press Confirm on vgs.zone… Then come back to the app."), Tim)
+            NutPhu(t("Huỷ", "Cancel"), Icons.Rounded.Close) { vm.huyChoVgs() }
+        } else {
+            NutChinh(t("Lưu \"${vm.tenTiviVgs}\" vào tài khoản VGS", "Save \"${vm.tenTiviVgs}\" to my VGS account"), enabled = !vm.dangBan, icon = Icons.Rounded.CloudUpload) { vm.luuLenVgs() }
+            if (!vm.vgsDaKetNoi && choLay) NutPhu(t("Đã lưu trước đây? Đăng nhập để lấy về", "Saved before? Sign in to load it"), Icons.Rounded.CloudDownload) { vm.ketNoiVgs() }
+        }
+        if (choLay && vm.vgsDaKetNoi && vm.vgsDs.isNotEmpty()) {
+            Phu(t("Tivi đã lưu (${vm.vgsDs.size}/${vm.vgsToiDa}). Lấy về rồi bấm \"Áp dụng lên tivi\".", "Saved TVs (${vm.vgsDs.size}/${vm.vgsToiDa}). Load one, then press \"Apply to the TV\"."))
+            vm.vgsDs.forEach { tv ->
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(tv.tivi, fontSize = 14.sp, color = Color.White)
+                        Text(tv.luc.take(10).split("-").reversed().joinToString("/") + (if (tv.banApp.isNotEmpty()) " · CleanTV ${tv.banApp}" else ""), fontSize = 12.sp, color = ChuPhu)
+                    }
+                    TextButton(onClick = { vm.layTuVgs(tv.id) }, enabled = !vm.dangBan) { Text(t("Lấy về", "Load")) }
+                    TextButton(onClick = { vm.xoaTrenVgs(tv.id) }, enabled = !vm.dangBan) { Text(t("Xoá", "Delete"), color = Color(0xFFFF8A80)) }
+                }
+            }
+        }
+        if (vm.vgsBao.isNotEmpty()) Phu(vm.vgsBao, Xanh)
+        if (vm.vgsLoi.isNotEmpty()) Phu(vm.vgsLoi, Color(0xFFFF8A80))
+        if (vm.vgsDaKetNoi && choLay) TextButton(onClick = { vm.thoatVgs() }, enabled = !vm.dangBan) { Text(t("Thoát tài khoản trên app này", "Sign out on this app"), color = ChuPhu, fontSize = 13.sp) }
     }
 }
 

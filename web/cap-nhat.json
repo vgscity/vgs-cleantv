@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 119,
-  "versionName": "4.0.9",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.0.9.apk",
+  "versionCode": 120,
+  "versionName": "4.1.0",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.0.apk",
   "co": 12569917,
-  "ghiChu": "Sửa lỗi tivi Sony BRAVIA bị trả về Home gốc sau khi dọn",
-  "ghiChuEn": "Fixes Sony BRAVIA TVs being sent back to the stock Home after cleaning",
-  "ngay": "2026-11-10"
+  "ghiChu": "Lưu cấu hình tivi vào tài khoản VGS (đổi máy, cài lại vẫn lấy về được). App cài kiểu điện thoại tự hiện trên Home sạch.",
+  "ghiChuEn": "Save your TV setup to a VGS account and restore it later. Phone-style apps you install now show up on the clean Home by themselves.",
+  "ngay": "2026-11-12"
  },
  "duLieu": {
   "du-lieu.json": {
    "phienBan": "be45fbc7c5c44acb",
    "url": "/ota/du-lieu.json",
    "co": 2748545,
-   "tuBan": 119
+   "tuBan": 120
   },
   "tvhome.apk": {
    "phienBan": "7dbbd426df11c056",
    "url": "/ota/tvhome.apk",
    "co": 706521,
-   "tuBan": 119
+   "tuBan": 120
   }
  }
 }

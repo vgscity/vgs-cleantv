@@ -1440,6 +1440,11 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
     /** App người dùng tự cài (gỡ được). */
     fun appTuCai(): Set<String> = sh("pm list packages -3").lines().map { it.substringAfter("package:").trim() }.filter { it.isNotBlank() }.toSet()
 
+    /** App tự cài chỉ có lối vào kiểu điện thoại, để Home sạch hiện cả khi Thư viện app tắt (dulieu/AppNgoai). */
+    fun appNgoaiKhongLoiTv(): Set<String> = zone.vgs.tvsach.dulieu.AppNgoai.loc(
+        appTuCai(), lopActivity("android.intent.category.LAUNCHER"),
+        lopActivity("android.intent.category.LEANBACK_LAUNCHER"), lopActivity("android.intent.category.HOME"))
+
     /** Mở một app trên tivi (màn chính kiểu tivi, không có thì kiểu điện thoại). */
     fun moApp(pkg: String): Boolean {
         if (!TEN_GOI.matches(pkg)) return false

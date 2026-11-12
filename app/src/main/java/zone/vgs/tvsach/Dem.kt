@@ -14,7 +14,7 @@ import java.util.UUID
 object Dem {
     private const val DIA_CHI = "https://cleantv-dem.vgszone.workers.dev/su-kien"
 
-    private fun maMay(ctx: Context): String {
+    fun maMay(ctx: Context): String {
         val p = ctx.getSharedPreferences("dem", Context.MODE_PRIVATE)
         return p.getString("may", null) ?: UUID.randomUUID().toString().also { p.edit().putString("may", it).apply() }
     }

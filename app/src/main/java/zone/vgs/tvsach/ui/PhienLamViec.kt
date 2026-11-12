@@ -1150,7 +1150,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         val sl = saoLuu ?: io { tv.damBaoSaoLuu(thongTin!!, getprop, ip) }.also { saoLuu = it }
         nhatKy.clear()
         val apk = io { zone.vgs.tvsach.CapNhat.moAsset(ctx, tv.apkHome).readBytes() }
-        val cauHinh = cauHinhHome()
+        val cauHinh = voiAppNgoai(cauHinhHome())
         val anh = anhNenTheme()
         val bo = boAnhTheme()
         napAnhKenh()
@@ -1322,6 +1322,10 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (daDat.isNotEmpty()) put("vgs_nang_cao", JSONArray(daDat))
     }.toString()
 
+    /** App tự cài kiểu điện thoại (Phim4K…) vào library_apps để hiện trên Home sạch; dò lỗi thì gửi nguyên cấu hình. */
+    private suspend fun voiAppNgoai(json: String): String =
+        runCatching { zone.vgs.tvsach.dulieu.AppNgoai.gop(json, io { tv.appNgoaiKhongLoiTv() }) }.getOrDefault(json)
+
     // ---------- Lưu / mở file cấu hình (góp ý 9000000, 23/10/2026) ----------
     var cauHinhBao by mutableStateOf("")
 
@@ -1454,6 +1458,101 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             t(". Bấm \"Áp dụng lên tivi\" để đưa lên tivi.", ". Press \"Apply to the TV\" to send it.")
     }
 
+    // ---------- Tài khoản VGS: lưu / lấy cấu hình tivi (anh Alex 12/11/2026, zone.vgs.tvsach.TaiKhoanVgs) ----------
+    var vgsDaKetNoi by mutableStateOf(false)
+    var vgsTen by mutableStateOf("")
+    var vgsDs by mutableStateOf<List<zone.vgs.tvsach.TaiKhoanVgs.TiviLuu>>(emptyList())
+    var vgsToiDa by mutableStateOf(10)
+    /** Đang chờ người dùng bấm Xác nhận trên vgs.zone. */
+    var vgsCho by mutableStateOf(false)
+    var vgsBao by mutableStateOf("")
+    var vgsLoi by mutableStateOf("")
+    private var vgsDaNap = false
+
+    val tenTiviVgs get() = thongTin?.tenHienThi?.takeIf { it.isNotBlank() } ?: t("Tivi", "TV")
+
+    /** Gọi khi thẻ tài khoản hiện ra: đã kết nối thì tải danh sách tivi đã lưu (một lần mỗi phiên). */
+    fun napTaiKhoanVgs() {
+        vgsDaKetNoi = zone.vgs.tvsach.TaiKhoanVgs.daKetNoi(ctx)
+        vgsTen = zone.vgs.tvsach.TaiKhoanVgs.tenDaLuu(ctx)
+        if (vgsDaKetNoi && !vgsDaNap) { vgsDaNap = true; viewModelScope.launch { runCatching { napDsVgs() }.onFailure { loiVgs(it) } } }
+    }
+
+    private suspend fun napDsVgs() {
+        val d = io { zone.vgs.tvsach.TaiKhoanVgs.danhSach(ctx) }
+        vgsTen = d.ten; vgsDs = d.ds; vgsToiDa = d.toiDa; vgsDaKetNoi = true
+    }
+
+    private fun loiVgs(e: Throwable) {
+        if (e is zone.vgs.tvsach.TaiKhoanVgs.LoiVgs && e.hetPhien) { zone.vgs.tvsach.TaiKhoanVgs.quen(ctx); vgsDaKetNoi = false; vgsDs = emptyList() }
+        vgsLoi = (e as? zone.vgs.tvsach.TaiKhoanVgs.LoiVgs)?.message
+            ?: t("Không tới được vgs.zone. Kiểm tra mạng điện thoại rồi thử lại.", "Couldn't reach vgs.zone. Check the phone's internet and try again.")
+    }
+
+    /** Ghép tài khoản: mở trang xác nhận trên trình duyệt, hỏi lại 3 giây một lần tới khi xong / hết hạn / huỷ; xong thì chạy [sau]. */
+    fun ketNoiVgs(sau: (() -> Unit)? = null) {
+        if (vgsCho) return
+        vgsLoi = ""; vgsBao = ""; vgsCho = true
+        viewModelScope.launch {
+            try {
+                val m = io { zone.vgs.tvsach.TaiKhoanVgs.xinMa(ctx) }
+                runCatching {
+                    ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(m.link))
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                }.onFailure { vgsBao = t("Mở trình duyệt vào: ${m.link}", "Open this in a browser: ${m.link}") }
+                repeat(300) {
+                    kotlinx.coroutines.delay(3000)
+                    if (!vgsCho) return@launch
+                    when (runCatching { io { zone.vgs.tvsach.TaiKhoanVgs.hoiMa(ctx, m) } }.getOrDefault("cho")) {
+                        "dung" -> { vgsCho = false; vgsBao = ""; napDsVgs(); sau?.invoke(); return@launch }
+                        "het" -> { vgsCho = false; vgsLoi = t("Mã kết nối đã hết hạn, bấm lại để thử lần nữa.", "The link code expired, press again to retry."); return@launch }
+                    }
+                }
+                vgsCho = false
+                vgsLoi = t("Chờ lâu quá chưa thấy xác nhận, bấm lại để thử lần nữa.", "No confirmation for too long, press again to retry.")
+            } catch (e: Throwable) { vgsCho = false; loiVgs(e) }
+        }
+    }
+
+    fun huyChoVgs() { vgsCho = false }
+
+    /** Lưu cấu hình Home sạch đang chọn (như file cấu hình) vào tài khoản, cùng tên tivi thì ghi đè. */
+    fun luuLenVgs() {
+        if (!zone.vgs.tvsach.TaiKhoanVgs.daKetNoi(ctx)) { ketNoiVgs { luuLenVgs() }; return }
+        chay(t("Đang lưu vào tài khoản VGS…", "Saving to your VGS account…")) {
+            vgsLoi = ""; vgsBao = ""
+            var j = JSONObject(String(taoFileCauHinh(), Charsets.UTF_8))
+            var boAnh = false
+            if (j.toString().length > 1_400_000 && j.has("vgs_anh_nen")) { j.remove("vgs_anh_nen"); boAnh = true }
+            val ten = tenTiviVgs
+            try {
+                io { zone.vgs.tvsach.TaiKhoanVgs.luu(ctx, ten, j.toString()) }
+                napDsVgs()
+                vgsBao = t("Đã lưu cấu hình \"$ten\" vào tài khoản VGS.", "Saved \"$ten\" to your VGS account.") +
+                    (if (boAnh) t(" Ảnh nền riêng lớn quá nên không lưu kèm.", " Your wallpaper was too large to include.") else "")
+            } catch (e: Throwable) { loiVgs(e) }
+        }
+    }
+
+    /** Lấy một cấu hình đã lưu về: điền lại mọi lựa chọn, bấm Áp dụng lên tivi mới đưa lên. */
+    fun layTuVgs(id: String) = chay(t("Đang lấy cấu hình từ tài khoản VGS…", "Loading from your VGS account…")) {
+        vgsLoi = ""; vgsBao = ""
+        try {
+            val json = io { zone.vgs.tvsach.TaiKhoanVgs.lay(ctx, id) }
+            napFileCauHinh(json)
+            vgsBao = cauHinhBao
+        } catch (e: zone.vgs.tvsach.TaiKhoanVgs.LoiVgs) { loiVgs(e) } catch (e: java.io.IOException) { loiVgs(e) }
+    }
+
+    fun xoaTrenVgs(id: String) = chay(t("Đang xoá…", "Deleting…")) {
+        try { io { zone.vgs.tvsach.TaiKhoanVgs.xoa(ctx, id) }; napDsVgs() } catch (e: Throwable) { loiVgs(e) }
+    }
+
+    fun thoatVgs() = chay(t("Đang thoát tài khoản…", "Signing out…")) {
+        io { zone.vgs.tvsach.TaiKhoanVgs.thoat(ctx) }
+        vgsDaKetNoi = false; vgsTen = ""; vgsDs = emptyList(); vgsBao = ""; vgsLoi = ""; vgsDaNap = false
+    }
+
     /** Ảnh logo kênh (assets/kenh, ảnh nhỏ của VTVgo) cho các kênh đang chọn; launcher không có mạng nên gửi kèm. */
     private suspend fun napAnhKenh() {
         val ds = if (dsKenhGo.isEmpty()) io { zone.vgs.tvsach.dulieu.KenhVtvGo.docNho(ctx) } else dsKenhGo
@@ -1527,7 +1626,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     fun apDungTheme() = chay(t("Đang đổi giao diện…", "Applying the theme…")) { apDungThemeBen() }
 
     private suspend fun apDungThemeBen() {
-        val json = cauHinhHome()
+        val json = voiAppNgoai(cauHinhHome())
         val anh = anhNenTheme()
         napAnhKenh()
         // Cài đè launcher đi kèm app (bản mới có dòng thời tiết…), giữ dữ liệu và dịch vụ trợ năng.

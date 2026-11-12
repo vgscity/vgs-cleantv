@@ -1,5 +1,17 @@
 [
  {
+  "ban": "4.1.0",
+  "ngay": "2026-11-12",
+  "vi": [
+   "Thẻ \"Tài khoản VGS\": lưu cấu hình Home sạch của từng tivi vào tài khoản vgs.zone (tối đa 10 tivi), lấy về rồi áp dụng lại khi đổi máy hay cài lại tivi.",
+   "App tự cài kiểu điện thoại (không có biểu tượng tivi) giờ tự hiện trên Home sạch khi cài Home hoặc bấm \"Áp dụng lên tivi\", không cần bật Thư viện app."
+  ],
+  "en": [
+   "\"VGS account\" card: save each TV's clean Home setup to your vgs.zone account (up to 10 TVs) and apply it again after a reset or on a new phone.",
+   "Phone-style apps you sideload (no TV icon) now appear on the clean Home when you install it or tap \"Apply to the TV\", without turning on the App library."
+  ]
+ },
+ {
   "ban": "4.0.9",
   "ngay": "2026-11-10",
   "vi": [
