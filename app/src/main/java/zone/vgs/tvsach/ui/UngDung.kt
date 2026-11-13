@@ -1281,6 +1281,7 @@ private fun TheHomeNoiDung(vm: PhienLamViec) {
         OutlinedTextField(vm.tenChao, { vm.tenChao = it }, label = { Text(t("Tên chào (vd: Nhà bác Hùng)", "Greeting name (e.g. The Smiths)")) },
             singleLine = true, modifier = Modifier.thoatOTv().fillMaxWidth(), shape = RoundedCornerShape(12.dp))
         Hang(t("Nút hẹn giờ tắt tivi", "Sleep timer button"), t("Một nút trên cùng: bấm lần lượt 15, 30, 60, 90 phút, bấm nữa là huỷ", "A top button: each press sets 15, 30, 60, 90 minutes, then off"), vm.nutHenTat) { vm.nutHenTat = it }
+        Hang(t("Nút Ngủ", "Sleep button"), t("Một nút trên cùng cho tivi / máy chiếu ngủ ngay (tắt màn, tắt quạt), bật lại bằng nút nguồn. Tiện khi remote không có nút ngủ. Cần Android 9 trở lên", "A top button that puts the TV / projector to sleep now; wake it with the power key. Handy when the remote has no sleep key. Needs Android 9 or later"), vm.nutNgu) { vm.nutNgu = it }
         Hang(t("Chữ giờ, ngày trắng sáng", "Bright white clock and date"), t("Dòng ngày tháng trắng hẳn thay vì xám nhạt, dễ đọc từ xa", "The date line in full white instead of soft grey, easier to read from afar"), vm.chuTrang) { vm.chuTrang = it }
         // Màu chữ đồng hồ, ngày, thời tiết (header_color; góp ý nggh, tranhoangnt555, Nam Tran 26–27/10/2026).
         Text(t("Màu chữ đồng hồ & thời tiết", "Clock & weather text colour"), fontSize = 14.sp)

@@ -860,7 +860,7 @@ index 0d336c94..effdf801 100644
          if (file == null || !file.isFile()) return null;
          if (file.length() > 64 * 1024) {
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
-index f6bc5ee9..f33c632f 100644
+index f6bc5ee9..1db882cb 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 @@ -72,6 +72,12 @@ public class HomeKeyService extends AccessibilityService {
@@ -931,9 +931,9 @@ index f6bc5ee9..f33c632f 100644
 +    }
 +
 +    /** CleanTV/VGS: the sleep timer's alarm — put the TV in standby, as the "sleep" action word does. */
-+    static void sleepNow() {
++    static boolean sleepNow() {
 +        HomeKeyService s = running;
-+        if (s != null && Build.VERSION.SDK_INT >= 28) s.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN);
++        return s != null && Build.VERSION.SDK_INT >= 28 && s.performGlobalAction(GLOBAL_ACTION_LOCK_SCREEN);
 +    }
 +
 +    /** CleanTV/VGS: learn_key, armed until this uptime by the LEARN_KEY broadcast; the key being learned, to swallow its release. */
@@ -1546,7 +1546,7 @@ index 00000000..0bc32d9d
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index 7472dc61..d1fb0b2b 100644
+index 7472dc61..e1877060 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 @@ -191,6 +191,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
@@ -1788,7 +1788,7 @@ index 7472dc61..d1fb0b2b 100644
  
          // Keep focus on the top bar at its ends and at the top: Android's focus finder would otherwise
          // jump to a tile far below when there is nothing in that direction.
-@@ -915,9 +1059,48 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -915,9 +1059,58 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              return keyCode == KeyEvent.KEYCODE_DPAD_RIGHT && v.getId() == rightButton;
          };
          btnInputs.setOnKeyListener(pillKeys);
@@ -1820,6 +1820,16 @@ index 7472dc61..d1fb0b2b 100644
 +            btnHenTat.setOnKeyListener(pillKeys);
 +            btnHenTat.setOnClickListener(v -> SleepTimer.next(this));
 +        }
++        // CleanTV/VGS 4.1.2: sleep_button, off by default (CleanTV turns it on for projectors) - standby now, for remotes with
++        // only a power key that cannot sleep (góp ý hanhphucnoidau1999, máy chiếu, 12/11/2026). Same action as the sleep timer.
++        View btnNgu = findViewById(R.id.btnSleep);
++        if (Build.VERSION.SDK_INT >= 28 && Weather.flag(this, "sleep_button", false)) {
++            btnNgu.setVisibility(View.VISIBLE);
++            btnNgu.setOnKeyListener(pillKeys);
++            btnNgu.setOnClickListener(v -> {
++                if (!HomeKeyService.sleepNow()) Toast.makeText(this, R.string.sleep_now_no_helper, Toast.LENGTH_LONG).show();
++            });
++        }
 +        // CleanTV/VGS: Now playing — shown only while an app plays or holds a paused session (now_playing, on by default).
 +        View nutPhat = findViewById(R.id.btnNowPlaying);
 +        if (nutPhat != null && Weather.flag(this, "now_playing", true)) {
@@ -1838,7 +1848,7 @@ index 7472dc61..d1fb0b2b 100644
          btnReorder.setOnKeyListener(pillKeys);
          btnLibraryTop.setOnKeyListener(pillKeys);
          for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
-@@ -1086,10 +1269,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1086,10 +1279,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          tileRefresh.onStart();
      }
  
@@ -1872,7 +1882,7 @@ index 7472dc61..d1fb0b2b 100644
          // A festival that started or ended while Home was in the background: rebuild with or without it.
          if (festive != festival.active(LocalDate.now())) {
              recreate();
-@@ -1118,6 +1324,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1118,6 +1334,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              default:
                  break;
          }
@@ -1880,7 +1890,7 @@ index 7472dc61..d1fb0b2b 100644
          if (openLiveTvAfterBoot()) return;
          updateGreeting();
          updatePanel();
-@@ -1137,6 +1344,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1137,6 +1354,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          }
          if (showStats) startStats();
          if (gameDay != null) gameDay.start();
@@ -1888,7 +1898,7 @@ index 7472dc61..d1fb0b2b 100644
          sky.update();
          wallpaperPlayer.start();
          handler.postDelayed(minuteTick, MINUTE_MS);
-@@ -1310,6 +1518,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1310,6 +1528,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // Only Home's own share is dropped: a key service that saw the same DOWN keeps its hold.
          RemoteKeys.release(this);
          cancelHoldOk();
@@ -1896,7 +1906,7 @@ index 7472dc61..d1fb0b2b 100644
          root.removeCallbacks(showIdleClock);
          endReorder();   // Home or another app while reordering keeps the order so far
          wallpaperPlayer.stop();
-@@ -1370,12 +1579,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1370,12 +1589,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (hasFocus) {
              startPendingSettingsReorder();
              if (libraryFocusPending && appLibrary == null) focusLibrary();
@@ -1978,7 +1988,7 @@ index 7472dc61..d1fb0b2b 100644
      @Override
      protected void onDestroy() {
          super.onDestroy();
-@@ -1520,7 +1798,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1520,7 +1808,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          dockedAtStart = adapter.dockFilled();
          for (int i = 0; i < Math.min(dockedAtStart, adapter.movableCount()); i++) dockInSession.add(adapter.keyAt(i));
          adapter.setReordering(true);
@@ -1987,7 +1997,7 @@ index 7472dc61..d1fb0b2b 100644
          reordering = true;
          orderAtStart = adapter.movableKeys();
          glass.setAccent(REORDER_ACCENT);
-@@ -1692,7 +1970,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1692,7 +1980,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  Toast.makeText(this, R.string.reorder_not_saved, Toast.LENGTH_SHORT).show();
              }
          }
@@ -1996,7 +2006,7 @@ index 7472dc61..d1fb0b2b 100644
      }
  
      /**
-@@ -1780,6 +2058,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1780,6 +2068,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (openPopup != null) openPopup.dismiss();
          libraryFocusPending = false;
          libraryFromTopBar = false;
@@ -2004,7 +2014,7 @@ index 7472dc61..d1fb0b2b 100644
          libraryFromVpnPill = false;
          appLibrary = new AppLibraryDialog(this, animations, reducedMotion, appLibrarySelection, libraryOkOpens, adapter::containsPackage, () -> reloadApps(false), () -> {
              appLibrary = null;
-@@ -1789,6 +2068,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1789,6 +2078,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  btnLibraryTop.requestFocus();
                  return;
              }
@@ -2016,7 +2026,7 @@ index 7472dc61..d1fb0b2b 100644
              boolean fromVpnPill = libraryFromVpnPill;
              libraryFromVpnPill = false;
              // The VPN pill can hide while the library is open (its VPN dropped): then focus goes as from the grid.
-@@ -2252,6 +2536,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2252,6 +2546,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          else glass.setAlpha(0f);
      }
  
@@ -2047,7 +2057,7 @@ index 7472dc61..d1fb0b2b 100644
      // ---- optional system stats (config.xml show_stats) --------------------------------------------
  
      /** Background reader. Started only while Home is resumed and show_stats is on. */
-@@ -2316,13 +2624,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2316,13 +2634,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // showing a dash that never fills in.
          StringBuilder line = new StringBuilder();
          if (cpu >= 0) line.append(getString(R.string.stats_cpu, cpu));
@@ -2075,7 +2085,7 @@ index 7472dc61..d1fb0b2b 100644
      // -1: need another sample. -2: this source cannot be read (Android 9 hides /proc/stat from apps).
      private static final int CPU_UNREADABLE = -2;
      private long cpuTotalPrev = -1, cpuIdlePrev = -1;
-@@ -3005,7 +3324,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3005,7 +3334,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              text = stub || icon == R.drawable.ic_ethernet ? "" : name;
              SpannableString label = new SpannableString(text + " " + badge);
              label.setSpan(span, text.length() + 1, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2088,7 +2098,7 @@ index 7472dc61..d1fb0b2b 100644
          } else if (!TextUtils.equals(btnWifi.getText(), text)) {
              btnWifi.setText(text);
          }
-@@ -3048,6 +3371,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3048,6 +3381,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private View btnLibraryTop;
      /** The open library came from that button: closing it returns there instead of scrolling to the grid's end. */
      private boolean libraryFromTopBar;
@@ -2097,7 +2107,7 @@ index 7472dc61..d1fb0b2b 100644
      /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
      private boolean libraryFromVpnPill;
  
-@@ -3249,9 +3574,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3249,9 +3584,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              openInput(bootInputId);
              return true;
          }
@@ -2136,7 +2146,7 @@ index 7472dc61..d1fb0b2b 100644
      }
  
      /** open_on_start_on_wake: the remote's power button is a light sleep on some sets, with no boot for
-@@ -3259,7 +3611,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3259,7 +3621,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private void openStartAppOnWake() {
          String app = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getString(OpenOnStart.KEY, "");
          if (app.isEmpty() || app.equals(getPackageName())) return;
@@ -2145,7 +2155,7 @@ index 7472dc61..d1fb0b2b 100644
          if (i != null) openWhenReady(i);
      }
  
-@@ -3324,7 +3676,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3324,7 +3686,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
       *  source number; "HW8=-" leaves that input out of the Inputs menu (a port the board reports but the set
       *  does not have). Returns the number, -1 for a left-out input, or null when the input is not listed. */
      private Integer mappedSource(String inputId) {
@@ -2179,7 +2189,7 @@ index 7472dc61..d1fb0b2b 100644
      }
  
      /** Switches to a passthrough input (HDMI, AV). An input mapped in `input_sources` is opened by sending
-@@ -3729,8 +4106,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3729,8 +4116,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (moduleCards) addSettingsMenuRow(rows, popup, R.string.module_cards, this::showModuleCards);
          if (dockRow) addSettingsMenuRow(rows, popup, R.string.dock_edit, this::startDockEdit);
          addSettingsMenuRow(rows, popup, R.string.reorder, this::toggleReorder);
@@ -2194,7 +2204,7 @@ index 7472dc61..d1fb0b2b 100644
          panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
          popup.setWidth(Math.max((int) (200 * density), panel.getMeasuredWidth()));
          // Hebrew puts Settings at the left of the header: grow the menu inward from it.
-@@ -3856,9 +4238,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3856,9 +4248,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              pickUp(at);
              Toast.makeText(this, R.string.reorder_hint, Toast.LENGTH_LONG).show();
          });
@@ -2211,7 +2221,7 @@ index 7472dc61..d1fb0b2b 100644
          });
          // Some firmware has no App info page at all; a row that only toasts "can't open" helps nobody.
          Intent info = SystemSettings.appInfo(this, pkg);
-@@ -3880,10 +4266,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3880,10 +4276,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                      .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
          }
@@ -2958,6 +2968,19 @@ index 00000000..4cee42f9
 +    android:width="22dp" android:height="22dp" android:viewportWidth="24" android:viewportHeight="24">
 +    <path android:fillColor="#FFFFFFFF"
 +        android:pathData="M15,1H9v2h6V1zM11,14h2V8h-2v6zM19.03,7.39l1.42,-1.42c-0.43,-0.51 -0.9,-0.99 -1.41,-1.41l-1.42,1.42C16.07,4.74 14.12,4 12,4c-4.97,0 -9,4.03 -9,9s4.02,9 9,9 9,-4.03 9,-9c0,-2.12 -0.74,-4.07 -1.97,-5.61zM12,20c-3.87,0 -7,-3.13 -7,-7s3.13,-7 7,-7 7,3.13 7,7 -3.13,7 -7,7z" />
++</vector>
+diff --git a/launcher/app/src/main/res/drawable/ic_ngu.xml b/launcher/app/src/main/res/drawable/ic_ngu.xml
+new file mode 100644
+index 00000000..de95d30c
+--- /dev/null
++++ b/launcher/app/src/main/res/drawable/ic_ngu.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- CleanTV/VGS: nút Ngủ (trăng khuyết). -->
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="22dp" android:height="22dp" android:viewportWidth="24" android:viewportHeight="24">
++    <path android:fillColor="#FFFFFFFF"
++        android:pathData="M12.34,2.02C6.59,1.82 2,6.42 2,12c0,5.52 4.48,10 10,10 3.71,0 6.93,-2.02 8.66,-5.02 -7.51,-0.25 -12.09,-8.43 -8.32,-14.96z" />
 +</vector>
 diff --git a/launcher/app/src/main/res/drawable/ic_now_playing.xml b/launcher/app/src/main/res/drawable/ic_now_playing.xml
 new file mode 100644
@@ -7464,7 +7487,7 @@ index 299dedb0..ae5ebdd4 100644
                              android:id="@+id/lunarDate"
                              android:gravity="right"
 diff --git a/launcher/app/src/main/res/layout/activity_main.xml b/launcher/app/src/main/res/layout/activity_main.xml
-index 4dd006b4..eb3a677d 100644
+index 4dd006b4..44d44509 100644
 --- a/launcher/app/src/main/res/layout/activity_main.xml
 +++ b/launcher/app/src/main/res/layout/activity_main.xml
 @@ -283,7 +283,7 @@
@@ -7515,7 +7538,7 @@ index 4dd006b4..eb3a677d 100644
                  <TextView
                      android:id="@+id/btnWifi"
                      style="@style/TopButton"
-@@ -365,6 +390,32 @@
+@@ -365,6 +390,41 @@
                      android:drawableStart="@drawable/ic_swap_vert"
                      android:nextFocusDown="@+id/grid" />
  
@@ -7542,6 +7565,15 @@ index 4dd006b4..eb3a677d 100644
 +                    style="@style/TopButton"
 +                    android:text="@string/sleep_timer"
 +                    android:drawableStart="@drawable/ic_hen_tat"
++                    android:visibility="gone"
++                    android:nextFocusDown="@+id/grid" />
++
++                <!-- CleanTV/VGS 4.1.2: cho tivi / máy chiếu ngủ ngay (sleep_button). -->
++                <TextView
++                    android:id="@+id/btnSleep"
++                    style="@style/TopButton"
++                    android:text="@string/sleep_now"
++                    android:drawableStart="@drawable/ic_ngu"
 +                    android:visibility="gone"
 +                    android:nextFocusDown="@+id/grid" />
 +
@@ -7587,10 +7619,10 @@ index 9e58a7d8..00000000
 -    <string name="font_medium" translatable="false">sans-serif-medium</string>
 -</resources>
 diff --git a/launcher/app/src/main/res/values-vi/strings.xml b/launcher/app/src/main/res/values-vi/strings.xml
-index f5c94d7d..4adcec7c 100644
+index f5c94d7d..cf61e1e9 100644
 --- a/launcher/app/src/main/res/values-vi/strings.xml
 +++ b/launcher/app/src/main/res/values-vi/strings.xml
-@@ -126,4 +126,20 @@
+@@ -126,4 +126,23 @@
      <string name="clock_format_system">Hệ thống</string>
      <string name="clock_format_12">12 giờ</string>
      <string name="clock_format_24">24 giờ</string>
@@ -7609,6 +7641,9 @@ index f5c94d7d..4adcec7c 100644
 +    <string name="sleep_timer_set">Tivi tự tắt sau %1$d phút (bấm tiếp để tăng)</string>
 +    <string name="sleep_timer_off">Đã huỷ hẹn giờ tắt</string>
 +    <string name="sleep_timer_no_helper">Đã hẹn %1$d phút, nhưng tivi chỉ tự tắt được khi bật bộ bắt phím của CleanTV (Android 9 trở lên)</string>
++    <!-- CleanTV/VGS 4.1.2: sleep_button -->
++    <string name="sleep_now">Ngủ</string>
++    <string name="sleep_now_no_helper">Nút Ngủ cần bộ bắt phím của CleanTV: mở CleanTV trên điện thoại, bấm Áp dụng lên tivi lại</string>
 +    <string name="vgs_hidden_no_library">Đã ẩn khỏi Home. Muốn hiện lại: trong CleanTV vào Đổi giao diện Home sạch, bật Thư viện app rồi thêm lại từ Thư viện.</string>
  </resources>
 diff --git a/launcher/app/src/main/res/values/fonts.xml b/launcher/app/src/main/res/values/fonts.xml
@@ -7627,10 +7662,10 @@ index adbb30db..91098f5c 100644
      <string name="font_light" translatable="false">@font/outfit_light</string>
      <string name="font_extralight" translatable="false">@font/outfit_extralight</string>
 diff --git a/launcher/app/src/main/res/values/strings.xml b/launcher/app/src/main/res/values/strings.xml
-index 2b2b53eb..b1c01cf2 100644
+index 2b2b53eb..492d106e 100644
 --- a/launcher/app/src/main/res/values/strings.xml
 +++ b/launcher/app/src/main/res/values/strings.xml
-@@ -158,4 +158,17 @@
+@@ -158,4 +158,20 @@
      <string name="clock_format_system">System</string>
      <string name="clock_format_12">12-hour</string>
      <string name="clock_format_24">24-hour</string>
@@ -7646,6 +7681,9 @@ index 2b2b53eb..b1c01cf2 100644
 +    <string name="sleep_timer_set">TV turns off in %1$d min (press again for longer)</string>
 +    <string name="sleep_timer_off">Sleep timer off</string>
 +    <string name="sleep_timer_no_helper">Timer set for %1$d min, but the TV can only turn itself off with CleanTV\'s key helper on (Android 9 or later)</string>
++    <!-- CleanTV/VGS 4.1.2: sleep_button -->
++    <string name="sleep_now">Sleep</string>
++    <string name="sleep_now_no_helper">Sleep needs CleanTV\'s key helper on: open CleanTV on your phone and apply to the TV again</string>
 +    <string name="vgs_hidden_no_library">Hidden from Home. To bring it back, turn on the app library in CleanTV (Change the clean Home look) and add it from there.</string>
  </resources>
 diff --git a/launcher/app/src/main/res/xml/home_key_service.xml b/launcher/app/src/main/res/xml/home_key_service.xml

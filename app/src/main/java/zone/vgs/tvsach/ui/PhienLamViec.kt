@@ -209,6 +209,9 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     var luonVeHome by mutableStateOf(false)
     /** Nút hẹn giờ tắt tivi trên Home sạch (sleep_timer_button, cần HomeKeyService). 3.2.0, góp ý duongghoangg1103. */
     var nutHenTat by mutableStateOf(false)
+    /** Nút Ngủ trên Home sạch (sleep_button, cần HomeKeyService, Android 9+). 4.1.2, góp ý hanhphucnoidau1999: máy chiếu remote
+     *  chỉ có nút nguồn. Mặc định bật cho máy chiếu, tắt cho tivi; luôn ghi rõ vào config để lựa chọn không đổi theo máy. */
+    var nutNgu by mutableStateOf(false)
     /**
      * Nút remote người dùng tự gán (3.1.1, "Dò phím remote"; góp ý Hoàng Hữu: nút VTVgo của remote TCL 65C655 chết sau khi
      * tắt Home gốc). Mỗi dòng là một mục app_keys: "scan:<mã quét>:<gói>" hoặc "<keycode>:<gói>". Cần HomeKeyService lọc phím.
@@ -723,6 +726,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         // khoá chủ nhà ở ngoài, không sửa được nữa (25/10/2026, 2 máy phải reset cứng). Mặc định giữ ADB, vẫn tắt được tay.
         giuAdb = info.device == "SVP-DTV15"
         laMayChieu = tv.coVeMayChieu(tt, info)
+        nutNgu = laMayChieu
         man = if (dangKhoiPhuc) Man.KHOI_PHUC else Man.THONG_TIN
     }
 
@@ -1071,6 +1075,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         moKhiThuc = j.optBoolean("wake_open_app", false)
         luonVeHome = j.optBoolean("power_on_home_always", false)
         nutHenTat = j.optBoolean("sleep_timer_button", false)
+        nutNgu = j.optBoolean("sleep_button", nutNgu)
         phimGan.clear(); j.optJSONArray("vgs_phim_gan")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.isNotBlank() }.forEach { phimGan.add(it) } }
         chuTrang = !cuaTheme("header_white") && j.optBoolean("header_white", false)
         if (j.optInt("vgs_bo_rieng", 0) > 1) phutDoiAnh = j.optInt("wallpaper_rotation_minutes", 15)
@@ -1275,6 +1280,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (moKhiBat && moKhiThuc) put("wake_open_app", true)
         if (luonVeHome) put("power_on_home_always", true)
         if (nutHenTat) put("sleep_timer_button", true)
+        put("sleep_button", nutNgu)
         if (chuTrang) put("header_white", true)
         mauChu?.let { put("header_color", it) }
         if (khungDau) put("header_panel", true)

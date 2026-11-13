@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 121,
-  "versionName": "4.1.1",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.1.apk",
-  "co": 12590965,
-  "ghiChu": "Home sạch theo bản mới của CleanYourTV: nút remote gán app chạy ổn hơn, Home tự bật lại dịch vụ bắt phím, đồng hồ không nhảy chữ.",
-  "ghiChuEn": "Clean Home follows the latest CleanYourTV: steadier remote button mapping, key helpers come back by themselves, a steadier clock.",
+  "versionCode": 122,
+  "versionName": "4.1.2",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.2.apk",
+  "co": 12593609,
+  "ghiChu": "Nút Ngủ trên Home sạch: bấm là tivi / máy chiếu ngủ ngay, bật lại bằng nút nguồn. Bật sẵn cho máy chiếu.",
+  "ghiChuEn": "Sleep button on the clean Home: puts the TV / projector to sleep at once, wake it with the power key. On by default for projectors.",
   "ngay": "2026-11-13"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "34946ccb86123e9e",
+   "phienBan": "27451d3ceb4626ed",
    "url": "/ota/du-lieu.json",
    "co": 2827757,
-   "tuBan": 121
+   "tuBan": 122
   },
   "tvhome.apk": {
-   "phienBan": "c0ef3b4be327998c",
+   "phienBan": "24e0afa3c0589740",
    "url": "/ota/tvhome.apk",
-   "co": 707173,
-   "tuBan": 121
+   "co": 708501,
+   "tuBan": 122
   }
  }
 }

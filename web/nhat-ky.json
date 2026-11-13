@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.2",
+  "ngay": "2026-11-13",
+  "vi": [
+   "Nút Ngủ trên Home sạch: bấm là tivi / máy chiếu ngủ ngay (tắt màn, tắt quạt), bật lại bằng nút nguồn. Tiện cho remote không có nút ngủ. Bật sẵn cho máy chiếu, tivi bật ở Đổi giao diện Home sạch → Đồng hồ & lời chào (Android 9 trở lên)."
+  ],
+  "en": [
+   "Sleep button on the clean Home: puts the TV / projector to sleep at once (screen and fan off), wake it with the power key. Handy for remotes with no sleep key. On by default for projectors; on TVs turn it on under Change the clean Home theme → Clock & greeting (Android 9 or later)."
+  ]
+ },
+ {
   "ban": "4.1.1",
   "ngay": "2026-11-13",
   "vi": [
