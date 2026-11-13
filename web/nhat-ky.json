@@ -1,5 +1,17 @@
 [
  {
+  "ban": "4.1.1",
+  "ngay": "2026-11-13",
+  "vi": [
+   "Home sạch cập nhật theo bản mới của CleanYourTV: nút remote gán app chạy ổn hơn (phím Back/Home/Sleep riêng của hãng, phím trùng với nút Cài đặt), Home tự bật lại dịch vụ bắt phím khi tivi tắt trợ năng, đồng hồ không còn nhảy chữ mỗi phút.",
+   "Thêm tuỳ chọn nâng cao «Tạm ngừng lọc phím khi chỉnh âm lượng» cho tivi giữ nút âm lượng chỉ nhích một nấc."
+  ],
+  "en": [
+   "Clean Home follows the latest CleanYourTV: remote buttons mapped to apps behave better (vendor Back/Home/Sleep keys, keys shared with the Settings button), Home turns its key helpers back on when the TV switches accessibility off, and the clock no longer shifts each minute.",
+   "New advanced option for TVs where holding volume moves only one step."
+  ]
+ },
+ {
   "ban": "4.1.0",
   "ngay": "2026-11-12",
   "vi": [

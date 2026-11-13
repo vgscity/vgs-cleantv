@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 120,
-  "versionName": "4.1.0",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.0.apk",
-  "co": 12569917,
-  "ghiChu": "Lưu cấu hình tivi vào tài khoản VGS (đổi máy, cài lại vẫn lấy về được). App cài kiểu điện thoại tự hiện trên Home sạch.",
-  "ghiChuEn": "Save your TV setup to a VGS account and restore it later. Phone-style apps you install now show up on the clean Home by themselves.",
-  "ngay": "2026-11-12"
+  "versionCode": 121,
+  "versionName": "4.1.1",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.1.apk",
+  "co": 12590965,
+  "ghiChu": "Home sạch theo bản mới của CleanYourTV: nút remote gán app chạy ổn hơn, Home tự bật lại dịch vụ bắt phím, đồng hồ không nhảy chữ.",
+  "ghiChuEn": "Clean Home follows the latest CleanYourTV: steadier remote button mapping, key helpers come back by themselves, a steadier clock.",
+  "ngay": "2026-11-13"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "be45fbc7c5c44acb",
+   "phienBan": "34946ccb86123e9e",
    "url": "/ota/du-lieu.json",
-   "co": 2748545,
-   "tuBan": 120
+   "co": 2827757,
+   "tuBan": 121
   },
   "tvhome.apk": {
-   "phienBan": "7dbbd426df11c056",
+   "phienBan": "c0ef3b4be327998c",
    "url": "/ota/tvhome.apk",
-   "co": 706521,
-   "tuBan": 120
+   "co": 707173,
+   "tuBan": 121
   }
  }
 }

@@ -267,6 +267,10 @@
   "ten": "Nhường phím cho tay cầm game",
   "moTa": "Bật thì khi có tay cầm game kết nối, dịch vụ bắt phím của Home sạch ngừng lọc phím để game nhận đủ nút (vd Steam Link với tay Xbox); các nút remote gán sẵn tạm không chạy tới khi rút tay cầm. Cần bật key_filter. Mặc định tắt."
  },
+ "volume_pauses_filter": {
+  "ten": "Tạm ngừng lọc phím khi chỉnh âm lượng",
+  "moTa": "Bật thì mỗi lần đổi âm lượng, dịch vụ bắt phím của Home sạch ngừng lọc phím 4 giây để giữ nút âm lượng là tăng/giảm liên tục. Dùng cho tivi giữ nút âm lượng chỉ nhích một nấc mà consume_volume_keys không chữa được (vd Xiaomi MOEU0, Google TV 14); các nút remote gán sẵn chạy lại sau 4 giây. Cần bật key_filter. Mặc định tắt."
+ },
  "top_bar_apps": {
   "ten": "App thành nút tròn trên thanh trên cùng",
   "moTa": "Các app này hiện thành nút tròn có logo ở thanh trên cùng, bên trái ô mạng, và không còn là ô trong lưới. Ghi tên gói, cách nhau bằng dấu phẩy."
