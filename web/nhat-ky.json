@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.3",
+  "ngay": "2026-11-14",
+  "vi": [
+   "Cài Home sạch tự xử lý máy có nhiều Home của hãng (máy chiếu Cheerlux…): giữ cả, chỉ đặt Home sạch làm mặc định, không còn báo lỗi bắt chọn Home. Danh sách gán nút remote hiện đúng tên Zentv."
+  ],
+  "en": [
+   "Installing the clean Home now handles devices with several maker launchers (Cheerlux projectors…): keeps them all and just makes the clean Home the default, no more 'pick a Home' error. The remote-key list shows Zentv by name."
+  ]
+ },
+ {
   "ban": "4.1.2",
   "ngay": "2026-11-13",
   "vi": [

@@ -174,6 +174,7 @@ val TEN_APP = mapOf(
     "vn.vtv.vtvgo" to "VTVgo",
     "com.kplus.tv" to "K+",
     "com.clip.tv" to "Clip TV",
+    "com.zentv.live" to "Zentv",
     "org.xbmc.kodi" to "Kodi",
     "com.google.android.apps.mediashell" to "Chromecast (truyền từ điện thoại)",
     "com.google.android.katniss" to "Trợ lý Google (giọng nói)",

@@ -454,8 +454,16 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
                 var tim = HOME_GOC_BIET.filter { ung.contains("$it/") }
                 // 4.0.8 (Cheerlux C50, 08/11/2026): launcher hãng lạ không có trong HOME_GOC_BIET nên đếm ra "0 Home gốc"
                 // rồi dừng. Không có Home gốc quen thì xét mọi ứng viên còn lại (bỏ Home sạch, Cài đặt/FallbackHome).
-                if (tim.isEmpty()) tim = ung.lines().map { it.trim().substringBefore('/') }.distinct()
-                    .filter { it.isNotBlank() && it != pkgHome && it !in HOME_SACH && (laHomeHangLa(it) || laLauncherCaiThem(it)) }
+                var hangLaNhieu = false
+                if (tim.isEmpty()) {
+                    tim = ung.lines().map { it.trim().substringBefore('/') }.distinct()
+                        .filter { it.isNotBlank() && it != pkgHome && it !in HOME_SACH && (laHomeHangLa(it) || laLauncherCaiThem(it)) }
+                    // Cheerlux C50 (truongvantung2002, 14/11/2026): máy chiếu có 2 launcher hãng, chưa đặt mặc định → hộp chọn
+                    // Home. Launcher hãng lạ đi đường "giữ bật, chỉ đặt Home sạch mặc định" nên chọn một cái để ghi sao lưu
+                    // là đủ — cái còn lại cũng để nguyên, đặt mặc định xong hộp chọn tự mất. Ưu tiên Home hãng hơn launcher cài thêm.
+                    if (tim.size > 1) { tim = tim.sortedBy { if (laHomeHangLa(it)) 0 else 1 }.take(1); hangLaNhieu = true }
+                }
+                if (hangLaNhieu) bao(t("Máy có nhiều Home gốc, giữ cả, chỉ đặt Home sạch làm mặc định…", "Several stock launchers found: keeping them all, only setting the clean Home as default…"))
                 if (tim.size == 1) tim[0] else return t("Tivi đang hỏi chọn Home (có ${tim.size} Home gốc). Chọn một Home trên tivi rồi thử lại.", "The TV is asking which Home to use (${tim.size} stock launchers). Pick one on the TV and try again.")
             }
             home == SETUP -> return t("Home đang là trình cài đặt của Google TV (setupwraith). Xem lại phần tắt gói: setupwraith phải tắt cùng Home gốc.", "Home is the Google TV setup wizard (setupwraith). Disable setupwraith together with the stock Home.")

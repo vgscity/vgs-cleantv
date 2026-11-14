@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 122,
-  "versionName": "4.1.2",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.2.apk",
+  "versionCode": 123,
+  "versionName": "4.1.3",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.3.apk",
   "co": 12593609,
-  "ghiChu": "Nút Ngủ trên Home sạch: bấm là tivi / máy chiếu ngủ ngay, bật lại bằng nút nguồn. Bật sẵn cho máy chiếu.",
-  "ghiChuEn": "Sleep button on the clean Home: puts the TV / projector to sleep at once, wake it with the power key. On by default for projectors.",
-  "ngay": "2026-11-13"
+  "ghiChu": "Cài Home sạch tự xử lý máy có nhiều Home của hãng (máy chiếu Cheerlux…): giữ cả, chỉ đặt Home sạch làm mặc định, không còn báo lỗi bắt chọn Home. Danh sách gán nút remote hiện đúng tên Zentv.",
+  "ghiChuEn": "Installing the clean Home now handles devices with several maker launchers (Cheerlux projectors…): keeps them all and just makes the clean Home the default, no more 'pick a Home' error. The remote-key list shows Zentv by name.",
+  "ngay": "2026-11-14"
  },
  "duLieu": {
   "du-lieu.json": {
    "phienBan": "27451d3ceb4626ed",
    "url": "/ota/du-lieu.json",
    "co": 2827757,
-   "tuBan": 122
+   "tuBan": 123
   },
   "tvhome.apk": {
    "phienBan": "24e0afa3c0589740",
    "url": "/ota/tvhome.apk",
    "co": 708501,
-   "tuBan": 122
+   "tuBan": 123
   }
  }
 }
