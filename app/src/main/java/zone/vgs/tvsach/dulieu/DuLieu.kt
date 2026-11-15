@@ -185,6 +185,8 @@ val TEN_APP = mapOf(
     "com.google.android.apps.tv.launcherx" to "Màn hình Home gốc (Google TV)",
     "com.gathin.tvhome" to "Home sạch (CleanYourTV)",
     "com.ts.launcher" to "Home sạch (bản cho Xiaomi)",
+    "com.android.tv.settings" to "Cài đặt tivi",
+    "org.videolan.vlc" to "VLC",
 )
 
 private val TEN_APP_EN = mapOf(
@@ -198,6 +200,7 @@ private val TEN_APP_EN = mapOf(
     "com.google.android.apps.tv.launcherx" to "Stock Home (Google TV)",
     "com.gathin.tvhome" to "Clean Home (CleanYourTV)",
     "com.ts.launcher" to "Clean Home (Xiaomi build)",
+    "com.android.tv.settings" to "TV Settings",
 )
 
 fun tenDep(pkg: String): String = (if (!zone.vgs.tvsach.NgonNgu.tiengViet) TEN_APP_EN[pkg] else null) ?: TEN_APP[pkg] ?: pkg.substringAfterLast('.')

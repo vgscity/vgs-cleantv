@@ -3,6 +3,12 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- CleanTV cấp qua ADB (pm grant) để app tự bật lại dịch vụ khoá nếu bị tắt trong Cài đặt. -->
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" tools:ignore="ProtectedPermissions" xmlns:tools="http://schemas.android.com/tools" />
+    <!-- Khoá từng app (1.1): biết app nào nhận Home (về màn hình chính thì khoá lại) và đọc tên app trên màn PIN. -->
+    <queries>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.HOME" /></intent>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LEANBACK_LAUNCHER" /></intent>
+        <intent><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent>
+    </queries>
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 

@@ -1,6 +1,10 @@
 package zone.vgs.khoa
 
 import android.accessibilityservice.AccessibilityService
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.Typeface
@@ -27,6 +31,9 @@ import java.util.Locale
  * Dịch vụ khoá (23/10/2026): trong khung giờ phụ huynh đặt, phủ một lớp kín màn hình (lớp trợ năng nằm trên mọi
  * app, kể cả HDMI) và nuốt mọi phím remote — chỉ còn số / mũi tên / OK để nhập PIN. Đúng PIN thì mở tạm
  * moTamPhut (mặc định 60). Sai 5 lần thì chờ 60 giây. Đang khoá thì dừng tiếng (giành audio focus + tắt tiếng nhạc).
+ *
+ * Khoá từng app (1.1, 15/11/2026): mở một app trong apps thì phủ màn PIN lên app đó. Đúng PIN thì dùng tiếp tới khi về
+ * màn hình chính (một app nhận Home hiện lên) hoặc tắt màn hình; Back / Home thì về màn hình chính. Khoá theo giờ thắng.
  */
 class KhoaDichVu : AccessibilityService() {
     companion object {
@@ -35,6 +42,8 @@ class KhoaDichVu : AccessibilityService() {
         private const val NHIP_MS = 15_000L
         private const val SAI_TOI_DA = 5
         private const val CHAN_MS = 60_000L
+        /** Cài đặt có màn HOME dự phòng (FallbackHome) nhưng không phải màn hình chính: khoá được, không xoá appDaMo. */
+        val GOI_CAI_DAT = setOf("com.android.tv.settings", "com.android.settings")
         private val PHIM = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "✓")
     }
 
@@ -48,6 +57,14 @@ class KhoaDichVu : AccessibilityService() {
     private var chon = 4
     private var pin = ""
     private var focus: AudioFocusRequest? = null
+    /** Gói đang bị màn PIN che (khoá từng app); null = màn khoá cả tivi hoặc không có lớp. */
+    private var appDangChe: String? = null
+    /** App đã mở đúng PIN, xoá khi về màn hình chính hoặc tắt màn hình. */
+    private val appDaMo = mutableSetOf<String>()
+    private var goiHome: Set<String> = emptySet()
+    private val tatManHinh = object : BroadcastReceiver() {
+        override fun onReceive(c: Context?, i: Intent?) { tay.post { appDaMo.clear() } }
+    }
     private val vi get() = Locale.getDefault().language == "vi"
     private fun t(v: String, e: String) = if (vi) v else e
 
@@ -59,17 +76,34 @@ class KhoaDichVu : AccessibilityService() {
         kho = Kho(this)
         dangChay = this
         CanhGac.hen(this)
+        goiHome = docGoiHome()
+        runCatching { registerReceiver(tatManHinh, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
         tay.post(nhip)
     }
 
+    /** Các app nhận Home (Home sạch, launcher gốc…): hiện lên nghĩa là người dùng đã về màn hình chính. */
+    private fun docGoiHome(): Set<String> = runCatching {
+        packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME), 0)
+            .map { it.activityInfo.packageName }.toSet() - GOI_CAI_DAT
+    }.getOrDefault(emptySet())
+
     override fun onDestroy() {
         tay.removeCallbacksAndMessages(null)
+        runCatching { unregisterReceiver(tatManHinh) }
         anKhoa()
         dangChay = null
         super.onDestroy()
     }
 
-    override fun onAccessibilityEvent(e: AccessibilityEvent?) {}
+    override fun onAccessibilityEvent(e: AccessibilityEvent?) {
+        if (e?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        val goi = e.packageName?.toString() ?: return
+        if (goi == packageName) return
+        if (goi in goiHome) { appDaMo.clear(); if (appDangChe != null) anKhoa(); return } // bấm Home lúc màn PIN đang che app
+        if (lop != null) return // đang có màn khoá (cả tivi hoặc app khác)
+        val c = kho.cauHinh ?: return
+        if (Luat.khoaApp(c, goi) && goi !in appDaMo) hienKhoa(goi)
+    }
     override fun onInterrupt() {}
 
     fun capNhatSau() = tay.post { capNhat() }
@@ -78,8 +112,11 @@ class KhoaDichVu : AccessibilityService() {
         val c = kho.cauHinh
         val bay = Calendar.getInstance()
         val khoa = c != null && Luat.trongGio(c, bay) && System.currentTimeMillis() >= kho.moTamDen
+        if (khoa && appDangChe != null) anKhoa() // khoá cả tivi thắng màn PIN của một app
         if (khoa && lop == null) hienKhoa()
-        if (!khoa && lop != null) anKhoa()
+        if (!khoa && lop != null && appDangChe == null) anKhoa()
+        // Phụ huynh bỏ app khỏi danh sách (hoặc tắt khoá) trong lúc màn PIN đang che app đó.
+        appDangChe?.let { g -> if (c == null || !Luat.khoaApp(c, g)) anKhoa() }
         if (khoa) {
             val het = Luat.hetKhoaLuc(c!!, bay)?.let { Luat.chuGio(it.get(Calendar.HOUR_OF_DAY) * 60 + it.get(Calendar.MINUTE)) }
             tvPhu.text = (if (het != null) t("Mở lại lúc $het. ", "Unlocks at $het. ") else "") +
@@ -97,11 +134,17 @@ class KhoaDichVu : AccessibilityService() {
         if (dam) typeface = Typeface.DEFAULT_BOLD
     }
 
-    private fun hienKhoa() {
+    private fun tenApp(goi: String): String = runCatching {
+        packageManager.getApplicationLabel(packageManager.getApplicationInfo(goi, 0)).toString()
+    }.getOrDefault(goi.substringAfterLast('.'))
+
+    /** [app] null = khoá cả tivi theo giờ; có gói = màn PIN che riêng app đó. */
+    private fun hienKhoa(app: String? = null) {
         pin = ""; chon = 4
         val cot = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL }
         cot.addView(chu("🔒", 44f))
-        cot.addView(chu(t("Tivi đang nghỉ", "The TV is resting"), 34f, dam = true).apply { setPadding(0, dp(8), 0, dp(6)) })
+        val tieuDe = if (app == null) t("Tivi đang nghỉ", "The TV is resting") else t("${tenApp(app)} đang khoá", "${tenApp(app)} is locked")
+        cot.addView(chu(tieuDe, 34f, dam = true).apply { setPadding(0, dp(8), 0, dp(6)) })
         tvPhu = chu("", 18f, Color.parseColor("#C9C3FF")); cot.addView(tvPhu, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
         tvCham = chu("", 34f).apply { letterSpacing = 0.4f; setPadding(0, dp(18), 0, dp(10)) }; cot.addView(tvCham)
         val luoi = GridLayout(this).apply { columnCount = 3 }
@@ -114,20 +157,33 @@ class KhoaDichVu : AccessibilityService() {
         }
         cot.addView(luoi, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { gravity = Gravity.CENTER_HORIZONTAL })
         tvBao = chu("", 16f, Color.parseColor("#FF8FA3")).apply { setPadding(0, dp(12), 0, 0) }; cot.addView(tvBao)
-        cot.addView(chu(t("Phụ huynh đổi giờ khoá trong app CleanTV.", "Parents change the schedule in the CleanTV app."), 13f, Color.parseColor("#8A84B8")).apply { setPadding(0, dp(18), 0, 0) })
+        val chan = if (app == null) t("Phụ huynh đổi giờ khoá trong app CleanTV.", "Parents change the schedule in the CleanTV app.")
+            else t("Phụ huynh chọn app khoá trong app CleanTV.", "Parents choose locked apps in the CleanTV app.")
+        cot.addView(chu(chan, 13f, Color.parseColor("#8A84B8")).apply { setPadding(0, dp(18), 0, 0) })
         val nen = FrameLayout(this).apply {
             setBackgroundColor(Color.parseColor("#FF0A0718"))
             addView(cot, FrameLayout.LayoutParams(dp(640), FrameLayout.LayoutParams.WRAP_CONTENT, Gravity.CENTER))
         }
+        // 1.1 (15/11/2026): lớp nhận tiêu điểm và tự đọc phím. Máy ảo Android TV 14 không chuyển phím nào cho bộ lọc
+        // phím của dịch vụ, nên trước đó màn khoá hiện mà không gõ được PIN. Khoá cả tivi: bộ lọc (nếu chạy) vẫn nhận
+        // trước và nuốt cả Home; không chạy thì lớp tự đọc phím, Home về màn hình chính nhưng lớp vẫn che.
+        // Màn PIN của một app: bộ lọc nhường phím cho lớp; Home về màn hình chính thì onAccessibilityEvent gỡ lớp.
+        val coTieuDiem = true
+        nen.apply {
+            isFocusable = true; isFocusableInTouchMode = true
+            setOnKeyListener { _, ma, ev -> if (ev.action == KeyEvent.ACTION_DOWN) xuLy(ma); true }
+        }
         val lp = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            (if (coTieuDiem) 0 else WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE) or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_FULLSCREEN,
             PixelFormat.TRANSLUCENT)
         runCatching { getSystemService(WindowManager::class.java).addView(nen, lp) }.onSuccess {
-            lop = nen; dangKhoa = true
-            performGlobalAction(GLOBAL_ACTION_HOME) // app đang chạy lui về nền
+            lop = nen; dangKhoa = true; appDangChe = app
+            if (app == null) performGlobalAction(GLOBAL_ACTION_HOME) // app đang chạy lui về nền
+            else tvPhu.text = t("Nhập mã PIN để mở app. Bấm Back để quay lại.", "Enter the PIN to open the app. Press Back to go back.")
             imTieng(true)
+            if (coTieuDiem) nen.requestFocus()
             vePin(); veChon()
         }
     }
@@ -135,7 +191,7 @@ class KhoaDichVu : AccessibilityService() {
     private fun anKhoa() {
         lop?.let { v -> runCatching { getSystemService(WindowManager::class.java).removeView(v) } }
         if (lop != null) imTieng(false)
-        lop = null; dangKhoa = false
+        lop = null; dangKhoa = false; appDangChe = null
     }
 
     private fun imTieng(bat: Boolean) {
@@ -170,7 +226,7 @@ class KhoaDichVu : AccessibilityService() {
     // ---------- Phím remote ----------
 
     override fun onKeyEvent(e: KeyEvent): Boolean {
-        if (lop == null) return false
+        if (lop == null || appDangChe != null) return false // màn PIN của app tự nhận phím (cửa sổ có tiêu điểm)
         if (e.action == KeyEvent.ACTION_DOWN) tay.post { xuLy(e.keyCode) }
         return true // đang khoá: nuốt mọi phím, kể cả Home, Back, nút app, giọng nói
     }
@@ -185,7 +241,10 @@ class KhoaDichVu : AccessibilityService() {
             KeyEvent.KEYCODE_DPAD_UP -> { if (chon >= 3) chon -= 3; veChon() }
             KeyEvent.KEYCODE_DPAD_DOWN -> { if (chon < 9) chon += 3; veChon() }
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> bam(PHIM[chon])
-            KeyEvent.KEYCODE_DEL, KeyEvent.KEYCODE_BACK -> bam("⌫")
+            // Màn PIN của một app: Back khi chưa gõ số / Home = thôi, về màn hình chính.
+            KeyEvent.KEYCODE_HOME -> if (appDangChe != null) thoiMoApp()
+            KeyEvent.KEYCODE_BACK -> if (appDangChe != null && pin.isEmpty()) thoiMoApp() else bam("⌫")
+            KeyEvent.KEYCODE_DEL -> bam("⌫")
         }
     }
 
@@ -202,10 +261,16 @@ class KhoaDichVu : AccessibilityService() {
         if (pin.length == 4) tay.postDelayed({ thu() }, 150)
     }
 
+    private fun thoiMoApp() {
+        pin = ""; anKhoa()
+        performGlobalAction(GLOBAL_ACTION_HOME)
+    }
+
     private fun thu() {
         val c = kho.cauHinh ?: return
         if (Luat.dungPin(c, pin)) {
             kho.sai = 0
+            appDangChe?.let { g -> appDaMo += g; pin = ""; anKhoa(); return }
             kho.moTamDen = System.currentTimeMillis() + c.moTamPhut * 60_000L
             pin = ""; anKhoa()
             return

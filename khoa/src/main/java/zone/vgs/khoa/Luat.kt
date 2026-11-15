@@ -8,8 +8,9 @@ import java.util.Calendar
 /** Một khung giờ khoá: phút trong ngày [tu, den) — den < tu là qua đêm (21:00–06:00); ngay 1 = Thứ Hai … 7 = Chủ Nhật. */
 data class Khung(val tu: Int, val den: Int, val ngay: Set<Int>)
 
-/** Cấu hình phụ huynh đặt từ CleanTV. pinBam = SHA-256(muoi + PIN), tivi không giữ PIN gốc. */
-data class CauHinh(val bat: Boolean, val muoi: String, val pinBam: String, val khung: List<Khung>, val moTamPhut: Int = 60)
+/** Cấu hình phụ huynh đặt từ CleanTV. pinBam = SHA-256(muoi + PIN), tivi không giữ PIN gốc.
+ *  apps (1.1, 15/11/2026): gói khoá riêng — mở app đó là hỏi PIN, không phụ thuộc giờ khoá hay công tắc bat. */
+data class CauHinh(val bat: Boolean, val muoi: String, val pinBam: String, val khung: List<Khung>, val moTamPhut: Int = 60, val apps: Set<String> = emptySet())
 
 /** Luật khoá, không đụng Android để test được trên máy tính. */
 object Luat {
@@ -26,6 +27,7 @@ object Luat {
                 Khung(phut(k.getString("tu")), phut(k.getString("den")), (0 until ng.length()).map { ng.getInt(it) }.filter { it in 1..7 }.toSet())
             },
             moTamPhut = o.optInt("moTamPhut", 60).coerceIn(5, 240),
+            apps = o.optJSONArray("apps")?.let { a -> (0 until a.length()).map { a.optString(it).trim() }.filter { it.isNotEmpty() }.toSet() } ?: emptySet(),
         )
     }.getOrNull()
 
@@ -66,6 +68,9 @@ object Luat {
         }
         return null
     }
+
+    /** Mở [goi] có phải hỏi PIN không: gói nằm trong apps và đã có PIN. */
+    fun khoaApp(c: CauHinh, goi: String?): Boolean = goi != null && c.pinBam.isNotBlank() && goi in c.apps
 
     fun bam(muoi: String, pin: String): String =
         MessageDigest.getInstance("SHA-256").digest((muoi + pin).toByteArray()).joinToString("") { "%02x".format(it) }

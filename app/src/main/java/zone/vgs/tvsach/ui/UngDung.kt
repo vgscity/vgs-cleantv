@@ -807,7 +807,7 @@ private fun ManThongTin(vm: PhienLamViec) = Cuon {
     if (zone.vgs.tvsach.ManHinh.laTv) NutPhu(t("Hẹn giờ tắt & app trên tivi", "Sleep timer & apps on the TV"), Icons.Rounded.Apps) { vm.moRemote() }
     else NutPhu(t("Remote trên điện thoại", "Phone remote"), Icons.Rounded.SettingsRemote) { vm.moRemote() }
     if (vm.daCoHomeSach) NutPhu(t("Đổi giao diện Home sạch", "Change the clean Home theme"), Icons.Rounded.Palette) { vm.moDoiTheme() }
-    NutPhu(t("Khoá trẻ em (hẹn giờ + mã PIN)", "Kids lock (schedule + PIN)"), Icons.Rounded.Lock) { vm.moKhoaTre() }
+    NutPhu(t("Khoá trẻ em (hẹn giờ, khoá app, mã PIN)", "Kids lock (schedule, app lock, PIN)"), Icons.Rounded.Lock) { vm.moKhoaTre() }
     if (vm.saoLuu != null) NutPhu(t("Khôi phục tivi này", "Restore this TV"), Icons.Rounded.Restore) { vm.man = Man.KHOI_PHUC }
     else if (vm.coDauCleanTv) NutPhu(t("Khôi phục (không có sao lưu)", "Restore (no backup)"), Icons.Rounded.Restore) { vm.man = Man.KHOI_PHUC }
     else NutPhu(t("Bật lại app đã tắt", "Re-enable disabled apps"), Icons.Rounded.Restore) { vm.man = Man.KHOI_PHUC }
@@ -2094,18 +2094,20 @@ private val TEN_THU_EN = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")
 private fun ManKhoaTre(vm: PhienLamViec) = Cuon {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(t("Khoá trẻ em", "Kids lock"), fontWeight = FontWeight.Black, fontSize = 22.sp)
-        Phu(t("Tới giờ khoá, tivi hiện màn khoá che mọi thứ (cả HDMI, YouTube) và chặn phím remote. Nhập đúng mã PIN trên tivi thì mở ${vm.KHOA_MO_TAM} phút. Tắt tivi bật lại vẫn khoá.",
-            "During the lock periods the TV shows a lock screen over everything (HDMI and YouTube too) and blocks the remote. The right PIN unlocks it for ${vm.KHOA_MO_TAM} minutes. It stays locked after a restart."))
+        Phu(t("Tới giờ khoá, tivi hiện màn khoá che mọi thứ (cả HDMI, YouTube) và chặn phím remote. Nhập đúng mã PIN trên tivi thì mở ${vm.KHOA_MO_TAM} phút. Tắt tivi bật lại vẫn khoá. Có thể khoá riêng từng app: mở app đó là tivi hỏi mã PIN.",
+            "During the lock periods the TV shows a lock screen over everything (HDMI and YouTube too) and blocks the remote. The right PIN unlocks it for ${vm.KHOA_MO_TAM} minutes. It stays locked after a restart. You can also lock single apps: opening one asks for the PIN."))
     }
     vm.khoaTrenTv?.let { j ->
         The(t("Trên tivi", "On the TV"), Icons.Rounded.Lock) {
             val bat = j.optBoolean("bat"); val chay = j.optBoolean("dichVuChay"); val dangKhoa = j.optBoolean("dangKhoa")
             val moDen = j.optLong("moTamDen")
-            Phu(if (!bat) t("Khoá đang tắt.", "The lock is off.")
+            val soApp = j.optJSONArray("apps")?.length() ?: 0
+            Phu(if (!bat && soApp > 0) (if (chay) t("Khoá theo giờ đang tắt. $soApp app đang khoá riêng.", "Schedule off. $soApp app(s) locked.") else t("$soApp app đang khoá riêng nhưng dịch vụ chưa chạy (tắt tivi bật lại).", "$soApp app(s) locked, but the service isn't running (restart the TV)."))
+                else if (!bat) t("Khoá đang tắt.", "The lock is off.")
                 else if (!chay) t("Khoá đang bật nhưng dịch vụ chưa chạy (tắt tivi bật lại).", "On, but the service isn't running (restart the TV).")
                 else if (dangKhoa) t("Tivi đang khoá.", "The TV is locked now.")
                 else if (moDen > System.currentTimeMillis()) t("Đang mở tạm tới ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(moDen))}.", "Unlocked until ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(moDen))}.")
-                else t("Khoá đang bật, ngoài giờ khoá.", "On, outside the lock periods."), if (bat && chay) Xanh else ChuPhu)
+                else t("Khoá đang bật, ngoài giờ khoá.", "On, outside the lock periods."), if ((bat || soApp > 0) && chay) Xanh else ChuPhu)
             if (bat) Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ChonChip(t("Mở tạm ${vm.KHOA_MO_TAM} phút", "Unlock ${vm.KHOA_MO_TAM} min"), false) { vm.moTamKhoaTre(vm.KHOA_MO_TAM) }
                 ChonChip(t("Khoá lại ngay", "Lock now"), false) { vm.moTamKhoaTre(0) }
@@ -2113,7 +2115,7 @@ private fun ManKhoaTre(vm: PhienLamViec) = Cuon {
         }
     }
     The(t("Giờ khoá", "Lock periods"), Icons.Rounded.Schedule) {
-        Hang(t("Bật khoá theo giờ", "Lock on a schedule"), t("Tắt thì tivi dùng bình thường, giữ nguyên giờ và PIN", "Off: the TV works normally; schedule and PIN are kept"), vm.khoaBat) { vm.khoaBat = it }
+        Hang(t("Bật khoá theo giờ", "Lock on a schedule"), t("Tắt thì không khoá theo giờ, giữ nguyên giờ và PIN (app đã chọn bên dưới vẫn khoá)", "Off: no schedule; times and PIN are kept (apps chosen below stay locked)"), vm.khoaBat) { vm.khoaBat = it }
         vm.khoaKhung.forEachIndexed { i, k ->
             Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(The2).padding(start = 14.dp, top = 6.dp, bottom = 6.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -2145,6 +2147,17 @@ private fun ManKhoaTre(vm: PhienLamViec) = Cuon {
             vm.khoaKhung += PhienLamViec.KhungKhoa(chuan(tu), chuan(den), ngay); tu = ""; den = ""
         }
         Phu(t("Khung qua đêm (21:00–06:00) tính theo ngày bắt đầu: chọn T2 là khoá từ tối thứ Hai tới sáng thứ Ba.", "Overnight periods count from the starting day."))
+    }
+    The(t("Khoá từng app", "Lock single apps"), Icons.Rounded.Apps) {
+        Phu(t("Mở app đã chọn là tivi hỏi mã PIN (cùng PIN bên dưới), bất kể giờ nào. Đúng PIN thì xem tiếp tới khi về màn hình chính hoặc tắt tivi. Bấm Back trên màn PIN là quay về.",
+            "Opening a chosen app asks for the PIN (the same PIN below), at any time. The right PIN keeps it open until you go Home or turn the TV off. Back on the PIN screen goes back."))
+        if (vm.khoaAppCo.isEmpty()) Phu(t("Chưa đọc được danh sách app trên tivi.", "Couldn't read the TV's app list."))
+        // App đã chọn lên đầu, rồi app có tên quen, cuối cùng là app lạ.
+        val ds = (vm.khoaApps.filter { it !in vm.khoaAppCo } + vm.khoaAppCo).distinct()
+            .sortedWith(compareBy({ it !in vm.khoaApps }, { tenDep(it) == it.substringAfterLast('.') }, { tenDep(it).lowercase() }))
+        ds.forEach { g ->
+            Hang(tenDep(g), g, g in vm.khoaApps) { bat -> if (bat) { if (g !in vm.khoaApps) vm.khoaApps += g } else vm.khoaApps.remove(g) }
+        }
     }
     The(t("Mã PIN", "PIN"), Icons.Rounded.Key) {
         if (vm.khoaTrenTv?.optBoolean("coPin") == true) Phu(t("Tivi đã có PIN. Để trống nếu không đổi.", "The TV already has a PIN. Leave empty to keep it."))

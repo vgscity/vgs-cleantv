@@ -55,4 +55,18 @@ class LuatTest {
         assertEquals(Khung(1260, 390, setOf(1, 2)), c.khung[0]); assertEquals(60, c.moTamPhut)
         assertNull(Luat.docJson("""{"khung":[{"tu":"25:00","den":"06:00"}]}"""))
     }
+
+    @Test fun khoaTungApp() {
+        val j = """{"bat":false,"muoi":"abc","pinBam":"${Luat.bam("abc", "1234")}","khung":[],"apps":["com.google.android.youtube.tv"," "]}"""
+        val c = Luat.docJson(j)!!
+        assertEquals(setOf("com.google.android.youtube.tv"), c.apps)
+        assertTrue(Luat.khoaApp(c, "com.google.android.youtube.tv"))
+        assertFalse(Luat.khoaApp(c, "com.netflix.ninja"))
+        assertFalse(Luat.khoaApp(c, null))
+        // Không có PIN thì không khoá app nào; tắt khoá theo giờ (bat=false) không ảnh hưởng khoá app.
+        assertFalse(Luat.khoaApp(c.copy(pinBam = ""), "com.google.android.youtube.tv"))
+        assertFalse(Luat.trongGio(c, luc(2026, 11, 15, 22, 0)))
+    }
+
+    @Test fun cauHinhCu_khongCoApps() { assertTrue(Luat.docJson("""{"bat":true,"khung":[]}""")!!.apps.isEmpty()) }
 }

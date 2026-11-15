@@ -196,6 +196,24 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         if (s.isEmpty()) "" else "\n# crash\n" + s.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n").take(1300)
     }.getOrDefault("")
 
+    /**
+     * 4.1.4 (phimxx1, TCL G10 15/11/2026: gán nút VTVgo sang Zentv bấm không mở gì, gán app khác thì mở): Home sạch mở app
+     * của nút bằng lối vào tivi, không có thì lối điện thoại, cả hai không có thì bỏ qua im lặng. Ghi từng app trong
+     * app_keys có cài không, có lối nào, kèm vài dòng START gần nhất của hệ thống, để biết nút hỏng ở bước nào.
+     */
+    fun chanDoanNutApp(): String = runCatching {
+        val ds = docCauHinhTv()?.optJSONArray("app_keys") ?: return ""
+        val goi = (0 until ds.length()).map { ds.optString(it).substringAfterLast(':').substringBefore('/').trim() }
+            .filter { TEN_GOI.matches(it) }.distinct().take(6)
+        if (goi.isEmpty()) return ""
+        val q = "cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category"
+        val s = sh(goi.joinToString("; ") { p ->
+            "echo \"$p cai=\$(pm path $p 2>/dev/null | head -1 | cut -c1-8) tv=\$($q.LEANBACK_LAUNCHER $p 2>&1 | tail -1 | cut -d/ -f2) " +
+                "dt=\$($q.LAUNCHER $p 2>&1 | tail -1 | cut -d/ -f2)\""
+        } + "; echo '# start'; logcat -d -v brief -s ActivityTaskManager:I 2>/dev/null | grep -E 'START u0' | tail -4 | cut -c1-170")
+        "\n# nut-app\n" + s.lines().map { it.trim() }.filter { it.isNotEmpty() }.joinToString("\n").take(1100)
+    }.getOrDefault("")
+
     fun homeHienTai(): String = sh(HOME_QUERY).lines().lastOrNull { it.isNotBlank() }?.trim() ?: ""
 
     fun chupManHinh(): ByteArray = adb.chupPng()
@@ -1350,6 +1368,18 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
 
     fun khoaDaCai(): Boolean = sh("pm path $PKG_KHOA 2>/dev/null").contains("package:")
 
+    /** versionCode của app khoá trên tivi (0 nếu chưa cài / đọc không được). */
+    private fun banKhoaTrenTv(): Int =
+        Regex("""versionCode=(\d+)""").find(sh("dumpsys package $PKG_KHOA 2>/dev/null | grep -m1 versionCode"))?.groupValues?.get(1)?.toIntOrNull() ?: 0
+
+    /** App chọn được để khoá riêng (1.1, 15/11/2026): có biểu tượng mở được, trừ app nhận Home và app khoá. */
+    fun appKhoaDuoc(): List<String> {
+        // Cài đặt có màn HOME dự phòng (FallbackHome) nhưng vẫn cho khoá: khoá Cài đặt thì trẻ không tắt được dịch vụ khoá.
+        val home = lopActivity("android.intent.category.HOME") - setOf("com.android.tv.settings", "com.android.settings")
+        return (lopActivity("android.intent.category.LEANBACK_LAUNCHER") + lopActivity("android.intent.category.LAUNCHER"))
+            .filter { it !in home && it != PKG_KHOA && TEN_GOI.matches(it) }.sorted()
+    }
+
     /** Trạng thái trên tivi (không có PIN): {bat, khung, moTamPhut, coPin, moTamDen, dangKhoa, dichVuChay}; null nếu chưa cài. */
     fun docKhoa(): org.json.JSONObject? {
         if (!khoaDaCai()) return null
@@ -1361,7 +1391,8 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
     /** Cài (nếu cần), cấp quyền tự canh gác, ghi cấu hình, bật dịch vụ khoá. [json] không chứa dấu nháy đơn. */
     fun caiKhoa(apk: ByteArray, json: String, bao: (String) -> Unit) {
         require(!json.contains('\'')) { "json" }
-        if (!khoaDaCai()) {
+        // Bản cũ (1.0) chưa biết khoá từng app: cài đè, giữ nguyên PIN và giờ khoá đã lưu.
+        if (!khoaDaCai() || banKhoaTrenTv() < KHOA_BAN) {
             bao(t("Cài app Khoá trẻ em lên tivi…", "Installing the Kids lock app on the TV…"))
             adb.ghiFile("/data/local/tmp/khoa.apk", apk)
             val out = sh("pm install -r /data/local/tmp/khoa.apk; rm -f /data/local/tmp/khoa.apk")
@@ -1582,6 +1613,8 @@ class ThaoTacTv(private val adb: KetNoiAdb, private val kho: KhoSaoLuu) {
         const val PKG_HOME_XIAOMI = "com.ts.launcher"
         /** App Khoá trẻ em (module khoa/). */
         const val PKG_KHOA = "zone.vgs.cleantv.khoa"
+        /** versionCode của khoa.apk đi kèm (2 = khoá từng app); tivi có bản thấp hơn thì cài đè. */
+        const val KHOA_BAN = 2
         /** Bản sao lưu trên tivi: thư mục của shell, còn sau khi gỡ app / Home sạch, chỉ mất khi khôi phục cài đặt gốc. */
         const val TEP_SAO_LUU_TV = "/data/local/tmp/cleantv-sao-luu.json"
         const val GAC = "/data/local/tmp/cleantv-gac"

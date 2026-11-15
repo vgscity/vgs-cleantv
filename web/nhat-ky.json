@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.4",
+  "ngay": "2026-11-15",
+  "vi": [
+   "Khoá trẻ em có thêm khoá từng app: chọn app (cả Cài đặt tivi), mở là tivi hỏi mã PIN. Màn khoá nhập PIN được trên mọi tivi. Bật lại được lời chào khi dùng giao diện Kiểu Apple TV / macOS. Báo lỗi ghi thêm phần nút remote đã gán."
+  ],
+  "en": [
+   "Kids lock can now lock single apps (TV Settings too): opening one asks for the PIN. The lock screen takes the PIN on every TV. The greeting can be turned back on with the Apple TV / macOS styles. Bug reports now include remote-button mappings."
+  ]
+ },
+ {
   "ban": "4.1.3",
   "ngay": "2026-11-14",
   "vi": [

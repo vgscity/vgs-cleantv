@@ -191,7 +191,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     /** Ô icon đều nhau kiểu Apple TV: icon trên nền màu của chính nó, không dùng ảnh banner (uniform_tiles). */
     var oDeuNhau by mutableStateOf(false)
     /** Chọn theme trên màn: công tắc ô icon đều nhau theo theme mới, người dùng vẫn đổi lại được sau đó. */
-    fun chonTheme(th: zone.vgs.tvsach.dulieu.Theme) { themeChon = th; oDeuNhau = th.cauHinh["uniform_tiles"] == true }
+    fun chonTheme(th: zone.vgs.tvsach.dulieu.Theme) { themeChon = th; oDeuNhau = th.cauHinh["uniform_tiles"] == true; anLoiChao = th.cauHinh["show_greeting"] == false }
     /** Số app mỗi hàng (columns của launcher, 0 = theo theme), góp ý 24/10/2026: Sony chỉ có 4 app một hàng. */
     var soCot by mutableStateOf(0)
     /** Cho chọn app tự mở khi bật tivi (open_on_start_choice của launcher; góp ý dmenh568, quan1sd1998 24/10/2026). */
@@ -822,6 +822,9 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     var khoaPin by mutableStateOf("")
     var khoaPin2 by mutableStateOf("")
     val khoaKhung = androidx.compose.runtime.mutableStateListOf<KhungKhoa>()
+    /** Khoá từng app (15/11/2026): gói đã chọn, và các app trên tivi chọn được. */
+    val khoaApps = androidx.compose.runtime.mutableStateListOf<String>()
+    var khoaAppCo by mutableStateOf<List<String>>(emptyList())
     var khoaBao by mutableStateOf("")
     /** Đúng PIN trên tivi thì mở bao lâu (anh Alex chốt 60 phút). */
     val KHOA_MO_TAM = 60
@@ -829,16 +832,19 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     fun moKhoaTre() = chay(t("Đọc cài đặt khoá trên tivi…", "Reading the lock settings…")) {
         val j = io { tv.docKhoa() }
         khoaTrenTv = j; khoaBao = ""; khoaPin = ""; khoaPin2 = ""
-        khoaKhung.clear()
+        khoaKhung.clear(); khoaApps.clear()
+        khoaAppCo = runCatching { io { tv.appKhoaDuoc() } }.getOrDefault(emptyList())
         if (j != null) {
             khoaBat = j.optBoolean("bat")
+            j.optJSONArray("apps")?.let { a -> for (i in 0 until a.length()) a.optString(i).takeIf { it.isNotBlank() }?.let { khoaApps += it } }
             val ks = j.optJSONArray("khung") ?: org.json.JSONArray()
             for (i in 0 until ks.length()) {
                 val k = ks.getJSONObject(i); val ng = k.optJSONArray("ngay") ?: org.json.JSONArray()
                 khoaKhung += KhungKhoa(k.optString("tu"), k.optString("den"), (0 until ng.length()).map { ng.getInt(it) }.toSet())
             }
         }
-        if (khoaKhung.isEmpty()) { khoaBat = true; khoaKhung += KhungKhoa("21:00", "06:00", (1..7).toSet()) }
+        // Lần đầu gợi ý sẵn khung tối; đã lưu "chỉ khoá app" (không khung giờ) thì để trống.
+        if (j == null && khoaKhung.isEmpty()) { khoaBat = true; khoaKhung += KhungKhoa("21:00", "06:00", (1..7).toSet()) }
         man = Man.KHOA_TRE
     }
 
@@ -848,11 +854,12 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             if (!Regex("^[0-9]{4}$").matches(khoaPin)) error(t("Mã PIN phải đúng 4 chữ số.", "The PIN must be exactly 4 digits."))
             if (khoaPin != khoaPin2) error(t("Hai lần nhập PIN không giống nhau.", "The two PINs don't match."))
         }
-        if (khoaKhung.isEmpty()) error(t("Thêm ít nhất một khung giờ khoá.", "Add at least one lock period."))
+        if (khoaKhung.isEmpty() && khoaApps.isEmpty()) error(t("Thêm một khung giờ khoá hoặc chọn app cần khoá.", "Add a lock period or pick apps to lock."))
         val gio = Regex("^([01][0-9]|2[0-3]):[0-5][0-9]$")
         khoaKhung.forEach { if (!gio.matches(it.tu) || !gio.matches(it.den) || it.ngay.isEmpty()) error(t("Khung giờ ${it.tu}–${it.den} chưa đúng (giờ dạng 21:00, chọn ít nhất một ngày).", "Period ${it.tu}–${it.den} is not valid.")) }
         val j = org.json.JSONObject().put("bat", khoaBat).put("moTamPhut", KHOA_MO_TAM)
             .put("khung", org.json.JSONArray(khoaKhung.map { org.json.JSONObject().put("tu", it.tu).put("den", it.den).put("ngay", org.json.JSONArray(it.ngay.sorted())) }))
+            .put("apps", org.json.JSONArray(khoaApps.distinct().sorted()))
         if (khoaPin.isNotEmpty()) {
             val muoi = java.util.UUID.randomUUID().toString().replace("-", "").take(16)
             val bam = java.security.MessageDigest.getInstance("SHA-256").digest((muoi + khoaPin).toByteArray()).joinToString("") { "%02x".format(it) }
@@ -864,10 +871,14 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         khoaTrenTv = io { tv.docKhoa() }
         khoaPin = ""; khoaPin2 = ""
         val chay = khoaTrenTv?.optBoolean("dichVuChay") == true
-        khoaBao = if (!khoaBat) t("Đã lưu. Khoá đang tắt.", "Saved. The lock is off.")
+        val soApp = khoaApps.distinct().size
+        val chuApp = if (soApp > 0) t(" $soApp app đã chọn hỏi PIN mỗi lần mở.", " $soApp chosen app(s) ask for the PIN when opened.") else ""
+        khoaBao = if (!chay && (khoaBat || soApp > 0)) t("Đã lưu nhưng dịch vụ khoá chưa chạy. Tắt tivi bật lại rồi mở lại màn này kiểm tra.", "Saved, but the lock service isn't running yet. Restart the TV and check again.")
+            else if (!khoaBat) t("Đã lưu. Khoá theo giờ đang tắt.", "Saved. The schedule is off.") + chuApp
             else if (chay) t("Đã bật khoá. Trong khung giờ, tivi hiện màn khoá; nhập đúng PIN thì mở $KHOA_MO_TAM phút.", "The lock is on. During the periods the TV shows the lock screen; the PIN unlocks it for $KHOA_MO_TAM minutes.")
-            else t("Đã lưu nhưng dịch vụ khoá chưa chạy. Tắt tivi bật lại rồi mở lại màn này kiểm tra.", "Saved, but the lock service isn't running yet. Restart the TV and check again.")
-        zone.vgs.tvsach.Dem.gui(ctx, "khoa", tenTiviDem(), khoaKhung.size, if (khoaBat) "bat" else "tat")
+            else t("Đã lưu nhưng dịch vụ khoá chưa chạy.", "Saved, but the lock service isn't running yet.")
+        if (khoaBat && chay) khoaBao += chuApp
+        zone.vgs.tvsach.Dem.gui(ctx, "khoa", tenTiviDem(), khoaKhung.size, (if (khoaBat) "bat" else "tat") + (if (soApp > 0) "+app$soApp" else ""))
     }
 
     fun moTamKhoaTre(phut: Int) = chay(t("Đang gửi lệnh…", "Sending…")) {
@@ -902,7 +913,9 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
             .put("giu", org.json.JSONArray((ketQua?.boQua ?: emptyList()).map { it.first }))
         // Gửi từ app chạy trên tivi (29/10/2026): đánh dấu để biết không có điện thoại nào trong cuộc.
         val tuTv = if (zone.vgs.tvsach.ManHinh.laTv) "# app-tren-tivi\n" else ""
-        du.put("chanDoan", (tuTv + io { tv.chanDoanHome(goiHome) } + "\n# phim-home " + phimHomeGhi).take(4500))
+        // Phần nút app (4.1.4) đặt cuối nhưng chừa chỗ: phần Home cắt bớt để cả gói vừa 4500 ký tự máy chủ giữ.
+        val nutApp = io { tv.chanDoanNutApp() }
+        du.put("chanDoan", (tuTv + io { tv.chanDoanHome(goiHome) } + "\n# phim-home " + phimHomeGhi).take(4500 - nutApp.length) + nutApp)
         val ok = io { zone.vgs.tvsach.Dem.guiDanhSach(ctx, du) }
         if (!ok) error(t("Chưa gửi được (mạng?). Thử lại sau nhé.", "Couldn't send (network?). Try again later."))
         dsDaGui = true
@@ -1067,7 +1080,9 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         dungTiengNen = j.optBoolean("pause_behind_home", true)
         coChuDau = if (cuaTheme("header_scale")) 100 else j.optInt("header_scale", 100)
         motHang = !cuaTheme("single_row") && j.optBoolean("single_row", false)
-        anLoiChao = !cuaTheme("show_greeting") && !j.optBoolean("show_greeting", true)
+        // 4.1.4 (góp ý nguyenthanhsn88 15/11/2026): như uniform_tiles — công tắc hiện đúng trạng thái thật (Kiểu Apple TV /
+        // macOS ẩn lời chào) và bật lại được đè lên theme; trước đây công tắc báo "đang hiện" mà lời chào vẫn ẩn.
+        anLoiChao = !j.optBoolean("show_greeting", true)
         giuAmLuong = !cuaTheme("key_filter") && !j.optBoolean("key_filter", true) && !laTclGoogleTv
         // 3.0.0 (góp ý contact.khanhtoan): công tắc hiện đúng trạng thái thật, kể cả khi theme bật, và tắt được đè lên theme.
         oDeuNhau = j.optBoolean("uniform_tiles", false)
@@ -1274,7 +1289,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (motHang) { put("dock_row", true); put("single_row", true) }
         // Một hàng + thư viện app: viên Thư viện chen vào hàng app, đã có nút trên thanh trên cùng (góp ý Giun2911 25/10/2026).
         if (motHang && thuVienApp) put("show_library_pill", false)
-        if (anLoiChao) put("show_greeting", false)
+        put("show_greeting", !anLoiChao)
         put("uniform_tiles", oDeuNhau)
         if (moKhiBat) put("open_on_start_choice", true)
         if (moKhiBat && moKhiThuc) put("wake_open_app", true)
