@@ -58,7 +58,7 @@
 {
 "khoa": "source_panel_extra",
 "kieu": "chu",
-"moTa": "One int extra sent with the source panel (Coocaa OS: control_center_command=100)",
+"moTa": "One int extra sent with the source panel (Coocaa OS: control_center_command=100). openSourcePanel() sends an extra only when there is a name before the '=' and a whole number after it, and sends none at all for anything else, so tools/manage.py's set refuses such a value",
 "canThan": true,
 "ten": "Tham số cho bảng chọn nguồn",
 "moTaVi": "Một số kèm theo khi mở bảng chọn nguồn (Coocaa OS: control_center_command=100)."
@@ -90,7 +90,7 @@
 {
 "khoa": "app_labels",
 "kieu": "ds",
-"moTa": "A tile's name instead of the app's own (MagentaTV as com.telekom.onetv.tv.pl=TV)",
+"moTa": "A tile's name instead of the app's own (MagentaTV as com.telekom.onetv.tv.pl=TV). Both halves are needed: an entry without them is skipped by Config.packageMap(), so tools/manage.py's set refuses it",
 "canThan": true,
 "ten": "Đổi tên hiện của app",
 "moTaVi": "Tên hiện trên ô thay cho tên gốc của app. Dạng tên.gói=Tên mới, ví dụ com.telekom.onetv.tv.pl=TV."
@@ -114,7 +114,7 @@
 {
 "khoa": "input_sources",
 "kieu": "ds",
-"moTa": "Vendor source numbers for the Inputs menu, HW<n>=<number> by the input id's last part; a mapped input opens by sending input_action with the number as the int extra input, and HW<n>=- leaves a port the set doesn't have out of the menu. Xiaomi/Redmi China firmware: [redmi-mitv-mftp0](../examples/redmi-mitv-mftp0/)",
+"moTa": "Vendor source numbers for the Inputs menu, HW<n>=<number> by the input id's last part; a mapped input opens by sending input_action with the number as the int extra input, and HW<n>=- leaves a port the set doesn't have out of the menu. InputSources.mapped() skips an entry it cannot match to an input id or cannot read a number out of - no '=', the '=' first, a / in the left half, a right half that ",
 "canThan": false,
 "ten": "Bảng số nguồn HDMI/AV",
 "moTaVi": "Ghép mỗi cổng vào (ví dụ HW5=23) với số nguồn của hãng; HW8=- để ẩn cổng tivi không có. Chỉ dùng cho firmware cần (Xiaomi bản Trung Quốc)."

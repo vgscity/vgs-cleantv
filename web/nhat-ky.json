@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.5",
+  "ngay": "2026-11-15",
+  "vi": [
+   "Nút app và nút Cài đặt trên remote chạy lại trên các tivi Google TV đang mở đè Home gốc; Home sạch nhẹ hơn khi đổi cài đặt nhiều lần."
+  ],
+  "en": [
+   "Remote app and Settings buttons work again on Google TV sets where the clean Home opens over the stock Home; the clean Home uses less memory after many settings changes."
+  ]
+ },
+ {
   "ban": "4.1.4",
   "ngay": "2026-11-15",
   "vi": [

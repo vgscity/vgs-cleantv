@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 124,
-  "versionName": "4.1.4",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.4.apk",
-  "co": 12595741,
-  "ghiChu": "Khoá trẻ em có thêm khoá từng app: chọn app (cả Cài đặt tivi), mở là tivi hỏi mã PIN. Màn khoá nhập PIN được trên mọi tivi. Bật lại được lời chào khi dùng giao diện Kiểu Apple TV / macOS. Báo lỗi ghi thêm phần nút remote đã gán.",
-  "ghiChuEn": "Kids lock can now lock single apps (TV Settings too): opening one asks for the PIN. The lock screen takes the PIN on every TV. The greeting can be turned back on with the Apple TV / macOS styles. Bug reports now include remote-button mappings.",
+  "versionCode": 125,
+  "versionName": "4.1.5",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.5.apk",
+  "co": 12618229,
+  "ghiChu": "Nút app và nút Cài đặt trên remote chạy lại trên các tivi Google TV đang mở đè Home gốc; Home sạch nhẹ hơn khi đổi cài đặt nhiều lần.",
+  "ghiChuEn": "Remote app and Settings buttons work again on Google TV sets where the clean Home opens over the stock Home; the clean Home uses less memory after many settings changes.",
   "ngay": "2026-11-15"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "27451d3ceb4626ed",
+   "phienBan": "fee14dd1acfbbfc7",
    "url": "/ota/du-lieu.json",
-   "co": 2827757,
-   "tuBan": 124
+   "co": 2922382,
+   "tuBan": 125
   },
   "tvhome.apk": {
-   "phienBan": "24e0afa3c0589740",
+   "phienBan": "baee23576e2988e1",
    "url": "/ota/tvhome.apk",
-   "co": 708501,
-   "tuBan": 124
+   "co": 708561,
+   "tuBan": 125
   }
  }
 }

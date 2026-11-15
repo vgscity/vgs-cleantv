@@ -860,7 +860,7 @@ index 0d336c94..effdf801 100644
          if (file == null || !file.isFile()) return null;
          if (file.length() > 64 * 1024) {
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
-index f6bc5ee9..1db882cb 100644
+index c4acc833..6023353e 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/HomeKeyService.java
 @@ -72,6 +72,12 @@ public class HomeKeyService extends AccessibilityService {
@@ -1075,7 +1075,7 @@ index f6bc5ee9..1db882cb 100644
          if (!powerOnLiveTv.isEmpty() || powerOnAlways) {
              armPowerOnHome();
          } else if (screenOnReceiver != null) {
-@@ -230,11 +391,14 @@ public class HomeKeyService extends AccessibilityService {
+@@ -234,11 +395,14 @@ public class HomeKeyService extends AccessibilityService {
              setServiceInfo(info);
          }
          if (!stockHome.isEmpty() || !powerOnLiveTv.isEmpty()) probeAtBoot();
@@ -1092,7 +1092,7 @@ index f6bc5ee9..1db882cb 100644
      }
  
      /** A tap's target: the "front:" entry while the button's own app is already in front, else the usual one. */
-@@ -256,6 +420,24 @@ public class HomeKeyService extends AccessibilityService {
+@@ -260,6 +424,24 @@ public class HomeKeyService extends AccessibilityService {
  
      @Override
      protected boolean onKeyEvent(KeyEvent event) {
@@ -1117,7 +1117,7 @@ index f6bc5ee9..1db882cb 100644
          // power_on_home: the first key after power-on hands the TV to the user (power and wake keys don't count).
          if (powerOnUntil != 0 && event.getAction() == KeyEvent.ACTION_DOWN
                  && event.getKeyCode() != KeyEvent.KEYCODE_POWER && event.getKeyCode() != KeyEvent.KEYCODE_WAKEUP) {
-@@ -301,7 +483,9 @@ public class HomeKeyService extends AccessibilityService {
+@@ -305,7 +487,9 @@ public class HomeKeyService extends AccessibilityService {
              redirectHomeKey(event);
              return false;
          }
@@ -1128,7 +1128,7 @@ index f6bc5ee9..1db882cb 100644
          if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) openHome();
          return true;
      }
-@@ -310,6 +494,10 @@ public class HomeKeyService extends AccessibilityService {
+@@ -314,6 +498,10 @@ public class HomeKeyService extends AccessibilityService {
      @Override
      public boolean onUnbind(Intent intent) {
          RemoteKeys.release(this);
@@ -1139,7 +1139,7 @@ index f6bc5ee9..1db882cb 100644
          if (repairRecord && !steppingOut) ServiceRepair.disconnected(this, getClass());
          return super.onUnbind(intent);
      }
-@@ -335,7 +523,14 @@ public class HomeKeyService extends AccessibilityService {
+@@ -339,7 +527,14 @@ public class HomeKeyService extends AccessibilityService {
          }
          // stock_home_redirect: the firmware turned the stock launcher back on and its home screen came up.
          CharSequence cls = event.getClassName();
@@ -1155,7 +1155,7 @@ index f6bc5ee9..1db882cb 100644
      }
  
      /** How long power_on_home stays armed after the screen turns on without a reboot. */
-@@ -363,7 +558,18 @@ public class HomeKeyService extends AccessibilityService {
+@@ -367,7 +562,18 @@ public class HomeKeyService extends AccessibilityService {
  
      /** power_on_home_always: Home, unless a key was pressed since the screen came on (the user has the TV). */
      private void homeAtPowerOn() {
@@ -1175,7 +1175,7 @@ index f6bc5ee9..1db882cb 100644
      }
  
      static boolean stillArmed(long now, long armedUntil) {
-@@ -404,6 +610,39 @@ public class HomeKeyService extends AccessibilityService {
+@@ -408,6 +614,39 @@ public class HomeKeyService extends AccessibilityService {
          }
      }
  
@@ -1215,7 +1215,7 @@ index f6bc5ee9..1db882cb 100644
      static boolean firstBindAfterBoot(int boot, int lastBoot, long uptimeMs) {
          return boot >= 0 && boot != lastBoot && uptimeMs < BOOT_WINDOW_MS;
      }
-@@ -429,6 +668,8 @@ public class HomeKeyService extends AccessibilityService {
+@@ -433,6 +672,8 @@ public class HomeKeyService extends AccessibilityService {
      }
  
      private void openHome() {
@@ -1546,7 +1546,7 @@ index 00000000..0bc32d9d
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index 7472dc61..e1877060 100644
+index 717aa158..7a0e8efa 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 @@ -191,6 +191,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
@@ -1848,7 +1848,7 @@ index 7472dc61..e1877060 100644
          btnReorder.setOnKeyListener(pillKeys);
          btnLibraryTop.setOnKeyListener(pillKeys);
          for (View button : topAppButtons) button.setOnKeyListener(pillKeys);
-@@ -1086,10 +1279,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1087,10 +1280,33 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          tileRefresh.onStart();
      }
  
@@ -1882,7 +1882,7 @@ index 7472dc61..e1877060 100644
          // A festival that started or ended while Home was in the background: rebuild with or without it.
          if (festive != festival.active(LocalDate.now())) {
              recreate();
-@@ -1118,6 +1334,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1119,6 +1335,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              default:
                  break;
          }
@@ -1890,7 +1890,7 @@ index 7472dc61..e1877060 100644
          if (openLiveTvAfterBoot()) return;
          updateGreeting();
          updatePanel();
-@@ -1137,6 +1354,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1138,6 +1355,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          }
          if (showStats) startStats();
          if (gameDay != null) gameDay.start();
@@ -1898,7 +1898,7 @@ index 7472dc61..e1877060 100644
          sky.update();
          wallpaperPlayer.start();
          handler.postDelayed(minuteTick, MINUTE_MS);
-@@ -1310,6 +1528,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1311,6 +1529,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // Only Home's own share is dropped: a key service that saw the same DOWN keeps its hold.
          RemoteKeys.release(this);
          cancelHoldOk();
@@ -1906,7 +1906,7 @@ index 7472dc61..e1877060 100644
          root.removeCallbacks(showIdleClock);
          endReorder();   // Home or another app while reordering keeps the order so far
          wallpaperPlayer.stop();
-@@ -1370,12 +1589,81 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1371,6 +1590,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (hasFocus) {
              startPendingSettingsReorder();
              if (libraryFocusPending && appLibrary == null) focusLibrary();
@@ -1914,8 +1914,9 @@ index 7472dc61..e1877060 100644
              showCardPrompt();
          } else {
              cancelHoldOk();   // a dialog or another window took the remote while OK was held
-         }
-     }
+@@ -1383,6 +1603,74 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+         if (!onTile) hideGlass();
+     };
  
 +    /**
 +     * CleanTV/VGS: a box that has just booted can still be in touch mode, where requestFocus() on a tile does nothing:
@@ -1988,7 +1989,7 @@ index 7472dc61..e1877060 100644
      @Override
      protected void onDestroy() {
          super.onDestroy();
-@@ -1520,7 +1808,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1529,7 +1817,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          dockedAtStart = adapter.dockFilled();
          for (int i = 0; i < Math.min(dockedAtStart, adapter.movableCount()); i++) dockInSession.add(adapter.keyAt(i));
          adapter.setReordering(true);
@@ -1997,7 +1998,7 @@ index 7472dc61..e1877060 100644
          reordering = true;
          orderAtStart = adapter.movableKeys();
          glass.setAccent(REORDER_ACCENT);
-@@ -1692,7 +1980,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1701,7 +1989,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  Toast.makeText(this, R.string.reorder_not_saved, Toast.LENGTH_SHORT).show();
              }
          }
@@ -2006,7 +2007,7 @@ index 7472dc61..e1877060 100644
      }
  
      /**
-@@ -1780,6 +2068,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1789,6 +2077,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (openPopup != null) openPopup.dismiss();
          libraryFocusPending = false;
          libraryFromTopBar = false;
@@ -2014,7 +2015,7 @@ index 7472dc61..e1877060 100644
          libraryFromVpnPill = false;
          appLibrary = new AppLibraryDialog(this, animations, reducedMotion, appLibrarySelection, libraryOkOpens, adapter::containsPackage, () -> reloadApps(false), () -> {
              appLibrary = null;
-@@ -1789,6 +2078,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1798,6 +2087,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  btnLibraryTop.requestFocus();
                  return;
              }
@@ -2026,7 +2027,7 @@ index 7472dc61..e1877060 100644
              boolean fromVpnPill = libraryFromVpnPill;
              libraryFromVpnPill = false;
              // The VPN pill can hide while the library is open (its VPN dropped): then focus goes as from the grid.
-@@ -2252,6 +2546,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2261,6 +2555,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          else glass.setAlpha(0f);
      }
  
@@ -2057,7 +2058,7 @@ index 7472dc61..e1877060 100644
      // ---- optional system stats (config.xml show_stats) --------------------------------------------
  
      /** Background reader. Started only while Home is resumed and show_stats is on. */
-@@ -2316,13 +2634,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2325,13 +2643,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // showing a dash that never fills in.
          StringBuilder line = new StringBuilder();
          if (cpu >= 0) line.append(getString(R.string.stats_cpu, cpu));
@@ -2085,7 +2086,7 @@ index 7472dc61..e1877060 100644
      // -1: need another sample. -2: this source cannot be read (Android 9 hides /proc/stat from apps).
      private static final int CPU_UNREADABLE = -2;
      private long cpuTotalPrev = -1, cpuIdlePrev = -1;
-@@ -3005,7 +3334,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3014,7 +3343,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              text = stub || icon == R.drawable.ic_ethernet ? "" : name;
              SpannableString label = new SpannableString(text + " " + badge);
              label.setSpan(span, text.length() + 1, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2098,7 +2099,7 @@ index 7472dc61..e1877060 100644
          } else if (!TextUtils.equals(btnWifi.getText(), text)) {
              btnWifi.setText(text);
          }
-@@ -3048,6 +3381,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3057,6 +3390,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private View btnLibraryTop;
      /** The open library came from that button: closing it returns there instead of scrolling to the grid's end. */
      private boolean libraryFromTopBar;
@@ -2107,7 +2108,7 @@ index 7472dc61..e1877060 100644
      /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
      private boolean libraryFromVpnPill;
  
-@@ -3249,9 +3584,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3258,9 +3593,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              openInput(bootInputId);
              return true;
          }
@@ -2146,7 +2147,7 @@ index 7472dc61..e1877060 100644
      }
  
      /** open_on_start_on_wake: the remote's power button is a light sleep on some sets, with no boot for
-@@ -3259,7 +3621,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3268,7 +3630,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private void openStartAppOnWake() {
          String app = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getString(OpenOnStart.KEY, "");
          if (app.isEmpty() || app.equals(getPackageName())) return;
@@ -2155,7 +2156,7 @@ index 7472dc61..e1877060 100644
          if (i != null) openWhenReady(i);
      }
  
-@@ -3324,7 +3686,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3333,7 +3695,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
       *  source number; "HW8=-" leaves that input out of the Inputs menu (a port the board reports but the set
       *  does not have). Returns the number, -1 for a left-out input, or null when the input is not listed. */
      private Integer mappedSource(String inputId) {
@@ -2189,7 +2190,7 @@ index 7472dc61..e1877060 100644
      }
  
      /** Switches to a passthrough input (HDMI, AV). An input mapped in `input_sources` is opened by sending
-@@ -3729,8 +4116,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3738,8 +4125,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (moduleCards) addSettingsMenuRow(rows, popup, R.string.module_cards, this::showModuleCards);
          if (dockRow) addSettingsMenuRow(rows, popup, R.string.dock_edit, this::startDockEdit);
          addSettingsMenuRow(rows, popup, R.string.reorder, this::toggleReorder);
@@ -2204,7 +2205,7 @@ index 7472dc61..e1877060 100644
          panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
          popup.setWidth(Math.max((int) (200 * density), panel.getMeasuredWidth()));
          // Hebrew puts Settings at the left of the header: grow the menu inward from it.
-@@ -3856,9 +4248,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3865,9 +4257,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              pickUp(at);
              Toast.makeText(this, R.string.reorder_hint, Toast.LENGTH_LONG).show();
          });
@@ -2221,7 +2222,7 @@ index 7472dc61..e1877060 100644
          });
          // Some firmware has no App info page at all; a row that only toasts "can't open" helps nobody.
          Intent info = SystemSettings.appInfo(this, pkg);
-@@ -3880,10 +4276,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3889,10 +4285,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                      .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
          }
@@ -2486,10 +2487,10 @@ index 00000000..6481c45d
 +
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java b/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java
-index 5bdfead7..b807406e 100644
+index 3bc5b122..8681b934 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/OpenOnStart.java
-@@ -52,6 +52,15 @@ final class OpenOnStart {
+@@ -53,6 +53,15 @@ final class OpenOnStart {
          return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
      }
  
@@ -6248,6 +6249,351 @@ AI{*Lx
 literal 0
 HcmV?d00001
 
+diff --git a/launcher/app/src/main/res/font/outfit_extralight.xml b/launcher/app/src/main/res/font/outfit_extralight.xml
+index 397e2989..f12687b6 100644
+--- a/launcher/app/src/main/res/font/outfit_extralight.xml
++++ b/launcher/app/src/main/res/font/outfit_extralight.xml
+@@ -1,13 +1,12 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- Outfit at weight 200, built once per process. android:fontVariationSettings on each TextView rebuilt
++<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 200, built once per process. android:fontVariationSettings on each TextView rebuilt
+      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
+      it did on the views, and draws the default instance. -->
+ <font-family xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools">
+     <font
+-        android:font="@font/outfit"
++        android:font="@font/lexend_extralight"
+         android:fontStyle="normal"
+         android:fontWeight="200"
+-        android:fontVariationSettings="'wght' 200"
+         tools:targetApi="28" />
+ </font-family>
+diff --git a/launcher/app/src/main/res/font/outfit_light.xml b/launcher/app/src/main/res/font/outfit_light.xml
+index 36338658..6ebb0262 100644
+--- a/launcher/app/src/main/res/font/outfit_light.xml
++++ b/launcher/app/src/main/res/font/outfit_light.xml
+@@ -1,13 +1,12 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- Outfit at weight 300, built once per process. android:fontVariationSettings on each TextView rebuilt
++<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 300, built once per process. android:fontVariationSettings on each TextView rebuilt
+      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
+      it did on the views, and draws the default instance. -->
+ <font-family xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools">
+     <font
+-        android:font="@font/outfit"
++        android:font="@font/lexend_light"
+         android:fontStyle="normal"
+         android:fontWeight="300"
+-        android:fontVariationSettings="'wght' 300"
+         tools:targetApi="28" />
+ </font-family>
+diff --git a/launcher/app/src/main/res/font/outfit_medium.xml b/launcher/app/src/main/res/font/outfit_medium.xml
+index 18d76991..ef32b90f 100644
+--- a/launcher/app/src/main/res/font/outfit_medium.xml
++++ b/launcher/app/src/main/res/font/outfit_medium.xml
+@@ -1,13 +1,12 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- Outfit at weight 500, built once per process. android:fontVariationSettings on each TextView rebuilt
++<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 500, built once per process. android:fontVariationSettings on each TextView rebuilt
+      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
+      it did on the views, and draws the default instance. -->
+ <font-family xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools">
+     <font
+-        android:font="@font/outfit"
++        android:font="@font/lexend_medium"
+         android:fontStyle="normal"
+         android:fontWeight="500"
+-        android:fontVariationSettings="'wght' 500"
+         tools:targetApi="28" />
+ </font-family>
+diff --git a/launcher/app/src/main/res/font/outfit_regular.xml b/launcher/app/src/main/res/font/outfit_regular.xml
+index 1550b02e..c7b78eaf 100644
+--- a/launcher/app/src/main/res/font/outfit_regular.xml
++++ b/launcher/app/src/main/res/font/outfit_regular.xml
+@@ -1,13 +1,12 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- Outfit at weight 400, built once per process. android:fontVariationSettings on each TextView rebuilt
++<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 400, built once per process. android:fontVariationSettings on each TextView rebuilt
+      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
+      it did on the views, and draws the default instance. -->
+ <font-family xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools">
+     <font
+-        android:font="@font/outfit"
++        android:font="@font/lexend"
+         android:fontStyle="normal"
+         android:fontWeight="400"
+-        android:fontVariationSettings="'wght' 400"
+         tools:targetApi="28" />
+ </font-family>
+diff --git a/launcher/app/src/main/res/layout-iw/activity_main.xml b/launcher/app/src/main/res/layout-iw/activity_main.xml
+index 299dedb0..ae5ebdd4 100644
+--- a/launcher/app/src/main/res/layout-iw/activity_main.xml
++++ b/launcher/app/src/main/res/layout-iw/activity_main.xml
+@@ -226,7 +226,7 @@
+                         android:letterSpacing="0.14"
+                         android:textAllCaps="true" />
+ 
+-                        <!-- Lunar date ("Lunar 13/9 · Year of the Horse"), shown when lunar_date is on. -->
++                        <!-- Lunar date, shown when lunar_date is on. -->
+                         <TextView
+                             android:id="@+id/lunarDate"
+                             android:gravity="right"
+diff --git a/launcher/app/src/main/res/layout/activity_main.xml b/launcher/app/src/main/res/layout/activity_main.xml
+index 4dd006b4..44d44509 100644
+--- a/launcher/app/src/main/res/layout/activity_main.xml
++++ b/launcher/app/src/main/res/layout/activity_main.xml
+@@ -283,7 +283,7 @@
+                             android:letterSpacing="0.14"
+                             android:textAllCaps="true" />
+ 
+-                        <!-- Lunar date ("Lunar 13/9 · Year of the Horse"), shown when lunar_date is on. -->
++                        <!-- Lunar date ("2/9 âm lịch · Bính Ngọ"), shown when lunar_date is on. -->
+                         <TextView
+                             android:id="@+id/lunarDate"
+                             android:gravity="left"
+@@ -298,6 +298,22 @@
+                             android:letterSpacing="0.14"
+                             android:textAllCaps="true"
+                             android:visibility="gone" />
++                        <!-- CleanTV/VGS: weather line ("30°C Trời quang · Vinh") under the date and lunar lines, at the date's
++                             size so a long ward name doesn't take over the header (feedback 23/10/2026). -->
++                        <TextView
++                            android:id="@+id/weather"
++                            android:gravity="left"
++                            android:layout_width="match_parent"
++                            android:layout_height="wrap_content"
++                            android:layout_marginTop="4dp"
++                            android:singleLine="true"
++                            android:ellipsize="end"
++                            android:textColor="#B3FFFFFF"
++                            android:textSize="14sp"
++                            android:fontFamily="@font/outfit_regular"
++                            android:letterSpacing="0.04"
++                            android:includeFontPadding="false"
++                            android:visibility="gone" />
+                     </LinearLayout>
+                 </LinearLayout>
+ 
+@@ -340,6 +356,15 @@
+                     android:drawableStart="@drawable/ic_input"
+                     android:nextFocusDown="@+id/grid" />
+ 
++                <!-- CleanTV/VGS: lối tắt máy chiếu (lấy nét, chỉnh hình…) — hiện khi config.json có projector_actions. -->
++                <TextView
++                    android:id="@+id/btnProjector"
++                    style="@style/TopButton"
++                    android:text="@string/projector"
++                    android:drawableStart="@drawable/ic_picture"
++                    android:visibility="gone"
++                    android:nextFocusDown="@+id/grid" />
++
+                 <TextView
+                     android:id="@+id/btnWifi"
+                     style="@style/TopButton"
+@@ -365,6 +390,41 @@
+                     android:drawableStart="@drawable/ic_swap_vert"
+                     android:nextFocusDown="@+id/grid" />
+ 
++                <!-- CleanTV/VGS: app đang phát nhạc / video (now_playing), chỉ hiện khi có. -->
++                <TextView
++                    android:id="@+id/btnNowPlaying"
++                    style="@style/TopButton"
++                    android:text="@string/now_playing"
++                    android:drawableStart="@drawable/ic_now_playing"
++                    android:visibility="gone"
++                    android:nextFocusDown="@+id/grid" />
++
++                <!-- CleanTV/VGS: bật màn hình chờ ngay (dream_button, mặc định bật). -->
++                <TextView
++                    android:id="@+id/btnDream"
++                    style="@style/TopButton"
++                    android:text="@string/screensaver"
++                    android:drawableStart="@drawable/ic_dream"
++                    android:visibility="gone"
++                    android:nextFocusDown="@+id/grid" />
++
++                <TextView
++                    android:id="@+id/btnSleepTimer"
++                    style="@style/TopButton"
++                    android:text="@string/sleep_timer"
++                    android:drawableStart="@drawable/ic_hen_tat"
++                    android:visibility="gone"
++                    android:nextFocusDown="@+id/grid" />
++
++                <!-- CleanTV/VGS 4.1.2: cho tivi / máy chiếu ngủ ngay (sleep_button). -->
++                <TextView
++                    android:id="@+id/btnSleep"
++                    style="@style/TopButton"
++                    android:text="@string/sleep_now"
++                    android:drawableStart="@drawable/ic_ngu"
++                    android:visibility="gone"
++                    android:nextFocusDown="@+id/grid" />
++
+                 <TextView
+                     android:id="@+id/btnLibraryTop"
+                     style="@style/TopButtonIcon"
+diff --git a/launcher/app/src/main/res/layout/dream_clock.xml b/launcher/app/src/main/res/layout/dream_clock.xml
+index b059bfa0..dc0f6eab 100644
+--- a/launcher/app/src/main/res/layout/dream_clock.xml
++++ b/launcher/app/src/main/res/layout/dream_clock.xml
+@@ -61,5 +61,18 @@
+             android:fontFamily="@string/font_regular"
+             android:letterSpacing="0.14"
+             android:textAllCaps="true" />
++
++        <!-- CleanTV/VGS 4.0.8: lunar_date under the date, as on Home (góp ý minhtam202x 07/11/2026). -->
++        <TextView
++            android:id="@+id/dreamLunar"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginStart="6dp"
++            android:layout_marginTop="4dp"
++            android:textColor="#73FFFFFF"
++            android:textSize="16sp"
++            android:fontFamily="@string/font_regular"
++            android:letterSpacing="0.06"
++            android:visibility="gone" />
+     </LinearLayout>
+ </FrameLayout>
+diff --git a/launcher/app/src/main/res/values-vi/strings.xml b/launcher/app/src/main/res/values-vi/strings.xml
+index f5c94d7d..cf61e1e9 100644
+--- a/launcher/app/src/main/res/values-vi/strings.xml
++++ b/launcher/app/src/main/res/values-vi/strings.xml
+@@ -126,4 +126,23 @@
+     <string name="clock_format_system">Hệ thống</string>
+     <string name="clock_format_12">12 giờ</string>
+     <string name="clock_format_24">24 giờ</string>
++    <string name="projector">Máy chiếu</string>
++    <string name="now_playing">Đang phát</string>
++    <string name="now_playing_pause">Tạm dừng</string>
++    <string name="now_playing_play">Phát tiếp</string>
++    <string name="now_playing_stop_all">Dừng tất cả</string>
++    <string name="now_playing_none">Không có gì đang phát</string>
++    <string name="screensaver">Màn hình chờ</string>
++    <string name="stats_cpu">CPU %1$d%%</string>
++    <string name="storage_gb_whole">%1$.0f GB</string>
++    <string name="storage_gb_decimal">%1$.1f GB</string>
++    <!-- CleanTV/VGS: sleep_timer_button -->
++    <string name="sleep_timer">Hẹn giờ tắt</string>
++    <string name="sleep_timer_set">Tivi tự tắt sau %1$d phút (bấm tiếp để tăng)</string>
++    <string name="sleep_timer_off">Đã huỷ hẹn giờ tắt</string>
++    <string name="sleep_timer_no_helper">Đã hẹn %1$d phút, nhưng tivi chỉ tự tắt được khi bật bộ bắt phím của CleanTV (Android 9 trở lên)</string>
++    <!-- CleanTV/VGS 4.1.2: sleep_button -->
++    <string name="sleep_now">Ngủ</string>
++    <string name="sleep_now_no_helper">Nút Ngủ cần bộ bắt phím của CleanTV: mở CleanTV trên điện thoại, bấm Áp dụng lên tivi lại</string>
++    <string name="vgs_hidden_no_library">Đã ẩn khỏi Home. Muốn hiện lại: trong CleanTV vào Đổi giao diện Home sạch, bật Thư viện app rồi thêm lại từ Thư viện.</string>
+ </resources>
+diff --git a/launcher/app/src/main/res/values/fonts.xml b/launcher/app/src/main/res/values/fonts.xml
+index adbb30db..91098f5c 100644
+--- a/launcher/app/src/main/res/values/fonts.xml
++++ b/launcher/app/src/main/res/values/fonts.xml
+@@ -1,8 +1,8 @@
+ <?xml version="1.0" encoding="utf-8"?>
+-<!-- The UI fonts, looked up through these strings so a locale can swap in a system family: Outfit has no
++<!-- CleanTV/VGS: Lexend thay Outfit (đủ dấu tiếng Việt), nên bỏ values-vi/fonts.xml. The UI fonts, looked up through these strings so a locale can swap in a system family: Outfit has no
+      glyphs for most Vietnamese accented letters, so values-vi points them at the system sans-serif (#833). -->
+ <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="ReferenceType">
+-    <string name="font_body" translatable="false">@font/outfit</string>
++    <string name="font_body" translatable="false">@font/lexend</string>
+     <string name="font_regular" translatable="false">@font/outfit_regular</string>
+     <string name="font_light" translatable="false">@font/outfit_light</string>
+     <string name="font_extralight" translatable="false">@font/outfit_extralight</string>
+diff --git a/launcher/app/src/main/res/values/strings.xml b/launcher/app/src/main/res/values/strings.xml
+index 2b2b53eb..492d106e 100644
+--- a/launcher/app/src/main/res/values/strings.xml
++++ b/launcher/app/src/main/res/values/strings.xml
+@@ -158,4 +158,20 @@
+     <string name="clock_format_system">System</string>
+     <string name="clock_format_12">12-hour</string>
+     <string name="clock_format_24">24-hour</string>
++    <string name="projector">Projector</string>
++    <string name="now_playing">Now playing</string>
++    <string name="now_playing_pause">Pause</string>
++    <string name="now_playing_play">Play</string>
++    <string name="now_playing_stop_all">Stop all</string>
++    <string name="now_playing_none">Nothing is playing</string>
++    <string name="screensaver">Screensaver</string>
++    <!-- CleanTV/VGS: sleep_timer_button -->
++    <string name="sleep_timer">Sleep timer</string>
++    <string name="sleep_timer_set">TV turns off in %1$d min (press again for longer)</string>
++    <string name="sleep_timer_off">Sleep timer off</string>
++    <string name="sleep_timer_no_helper">Timer set for %1$d min, but the TV can only turn itself off with CleanTV\'s key helper on (Android 9 or later)</string>
++    <!-- CleanTV/VGS 4.1.2: sleep_button -->
++    <string name="sleep_now">Sleep</string>
++    <string name="sleep_now_no_helper">Sleep needs CleanTV\'s key helper on: open CleanTV on your phone and apply to the TV again</string>
++    <string name="vgs_hidden_no_library">Hidden from Home. To bring it back, turn on the app library in CleanTV (Change the clean Home look) and add it from there.</string>
+ </resources>
+diff --git a/launcher/app/src/main/res/xml/home_key_service.xml b/launcher/app/src/main/res/xml/home_key_service.xml
+index 49565e22..a67dadc9 100644
+--- a/launcher/app/src/main/res/xml/home_key_service.xml
++++ b/launcher/app/src/main/res/xml/home_key_service.xml
+@@ -2,9 +2,13 @@
+ <!-- Keys only: no accessibilityEventTypes (0), so the system never calls into the launcher for
+      accessibility events, which both services ignore. Key filtering depends only on
+      flagRequestFilterKeyEvents and canRequestFilterKeyEvents, not on the event types.
+-     stock_home_redirect is the exception: with it set, HomeKeyService adds typeWindowStateChanged at runtime. -->
++     stock_home_redirect is the exception: with it set, HomeKeyService adds typeWindowStateChanged at runtime.
++     CleanTV/VGS: canRetrieveWindowContent for the phone remote's typing (TYPE_TEXT): it sets the text of the focused
++     field, still with no events. flagRetrieveInteractiveWindows is turned on only while typing (HomeKeyService):
++     kept on, the window tracking slowed the remote on a weak ATV11 box (27/10/2026). -->
+ <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+     android:accessibilityFeedbackType="feedbackGeneric"
+     android:accessibilityFlags="flagRequestFilterKeyEvents"
+     android:canRequestFilterKeyEvents="true"
++    android:canRetrieveWindowContent="true"
+     android:description="@string/home_key_description" />
+diff --git a/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java b/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
+index 9d388d3c..1b60b9ce 100644
+--- a/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
++++ b/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
+@@ -108,6 +108,12 @@ public class RemoteKeysTest {
+         // and the keycode parser leaves scancode entries alone
+         assertEquals(1, parse(entries.toArray(new String[0])).size());
+     }
++    // CleanTV/VGS: scancode 240 (KEY_UNKNOWN) is shared by every TCL app button, so it never maps one.
++    @Test public void unknownScancodeIgnored() {
++        Map<Integer, String> scans = RemoteKeys.parseAppScancodes(Arrays.asList("scan:240:com.google.android.youtube.tv", "scan:490:a.b"));
++        assertEquals(1, scans.size());
++        assertEquals(null, scans.get(240));
++    }
+     @Test public void inputTargets() {
+         String hdmi = "com.tcl.tvinput/.passthroughinput.TvPassThroughService/HW1413743104";
+         Map<Integer, String> keys = parse("4062:input:" + hdmi);
+diff --git a/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java b/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java
+new file mode 100644
+index 00000000..fcf5287b
+--- /dev/null
++++ b/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java
+@@ -0,0 +1,25 @@
++package com.gathin.tvhome;
++
++import static org.junit.Assert.assertEquals;
++
++import org.junit.Test;
++
++public class SleepTimerTest {
++    @Test
++    public void eachPressMovesToTheNextStep() {
++        assertEquals(15, SleepTimer.nextStep(0));
++        assertEquals(30, SleepTimer.nextStep(15));
++        assertEquals(30, SleepTimer.nextStep(14));
++        assertEquals(60, SleepTimer.nextStep(30));
++        assertEquals(90, SleepTimer.nextStep(60));
++        assertEquals(0, SleepTimer.nextStep(90));
++    }
++
++    @Test
++    public void minutesLeftRoundUpAndEndAtZero() {
++        assertEquals(0, SleepTimer.minutesLeft(0, 1_000));
++        assertEquals(0, SleepTimer.minutesLeft(1_000, 1_000));
++        assertEquals(1, SleepTimer.minutesLeft(61_000, 60_000));
++        assertEquals(15, SleepTimer.minutesLeft(15 * 60_000L, 0));
++    }
++}
 diff --git a/launcher/app/src/main/res/font/outfit.ttf b/launcher/app/src/main/res/font/outfit.ttf
 deleted file mode 100644
 index 466d6245f9582df39bf73da91a8b3c938fd061cd..0000000000000000000000000000000000000000
@@ -7393,216 +7739,6 @@ z<^#;e#6=8;quCs6xNy+RmIz(!#6*IIP$Zg<9?j>7R>Y)U$A_1Z;m?304}QFaYy0sm
 z7AL#2Q?Ga7#)@k?^UBJOm%*cVJ%=8TcIc6tZgR5g>Sp3+yBR#c#;oGS|BhcPCZ;I{
 y&Mn%vm42hXEs~JnWDgDkt;PS2gR7+EPzk(T^PF6^>pQvbxFZ<s>Pks*k^ci%K3%i`
 
-diff --git a/launcher/app/src/main/res/font/outfit_extralight.xml b/launcher/app/src/main/res/font/outfit_extralight.xml
-index 397e2989..f12687b6 100644
---- a/launcher/app/src/main/res/font/outfit_extralight.xml
-+++ b/launcher/app/src/main/res/font/outfit_extralight.xml
-@@ -1,13 +1,12 @@
- <?xml version="1.0" encoding="utf-8"?>
--<!-- Outfit at weight 200, built once per process. android:fontVariationSettings on each TextView rebuilt
-+<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 200, built once per process. android:fontVariationSettings on each TextView rebuilt
-      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
-      it did on the views, and draws the default instance. -->
- <font-family xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:tools="http://schemas.android.com/tools">
-     <font
--        android:font="@font/outfit"
-+        android:font="@font/lexend_extralight"
-         android:fontStyle="normal"
-         android:fontWeight="200"
--        android:fontVariationSettings="'wght' 200"
-         tools:targetApi="28" />
- </font-family>
-diff --git a/launcher/app/src/main/res/font/outfit_light.xml b/launcher/app/src/main/res/font/outfit_light.xml
-index 36338658..6ebb0262 100644
---- a/launcher/app/src/main/res/font/outfit_light.xml
-+++ b/launcher/app/src/main/res/font/outfit_light.xml
-@@ -1,13 +1,12 @@
- <?xml version="1.0" encoding="utf-8"?>
--<!-- Outfit at weight 300, built once per process. android:fontVariationSettings on each TextView rebuilt
-+<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 300, built once per process. android:fontVariationSettings on each TextView rebuilt
-      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
-      it did on the views, and draws the default instance. -->
- <font-family xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:tools="http://schemas.android.com/tools">
-     <font
--        android:font="@font/outfit"
-+        android:font="@font/lexend_light"
-         android:fontStyle="normal"
-         android:fontWeight="300"
--        android:fontVariationSettings="'wght' 300"
-         tools:targetApi="28" />
- </font-family>
-diff --git a/launcher/app/src/main/res/font/outfit_medium.xml b/launcher/app/src/main/res/font/outfit_medium.xml
-index 18d76991..ef32b90f 100644
---- a/launcher/app/src/main/res/font/outfit_medium.xml
-+++ b/launcher/app/src/main/res/font/outfit_medium.xml
-@@ -1,13 +1,12 @@
- <?xml version="1.0" encoding="utf-8"?>
--<!-- Outfit at weight 500, built once per process. android:fontVariationSettings on each TextView rebuilt
-+<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 500, built once per process. android:fontVariationSettings on each TextView rebuilt
-      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
-      it did on the views, and draws the default instance. -->
- <font-family xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:tools="http://schemas.android.com/tools">
-     <font
--        android:font="@font/outfit"
-+        android:font="@font/lexend_medium"
-         android:fontStyle="normal"
-         android:fontWeight="500"
--        android:fontVariationSettings="'wght' 500"
-         tools:targetApi="28" />
- </font-family>
-diff --git a/launcher/app/src/main/res/font/outfit_regular.xml b/launcher/app/src/main/res/font/outfit_regular.xml
-index 1550b02e..c7b78eaf 100644
---- a/launcher/app/src/main/res/font/outfit_regular.xml
-+++ b/launcher/app/src/main/res/font/outfit_regular.xml
-@@ -1,13 +1,12 @@
- <?xml version="1.0" encoding="utf-8"?>
--<!-- Outfit at weight 400, built once per process. android:fontVariationSettings on each TextView rebuilt
-+<!-- CleanTV/VGS: Lexend TĨNH từng độ đậm (bản biến thiên vỡ dấu tiếng Việt trên Android 9 — Sony KD-49X8000G, 22/10/2026). Lexend thay Outfit (Outfit thiếu 96 chữ tiếng Việt, ặ/ộ/ư… rơi về font hệ thống). Was: Outfit at weight 400, built once per process. android:fontVariationSettings on each TextView rebuilt
-      the variable font for every view (about 10 ms each on a TV CPU). Android 8 ignores the weight here, as
-      it did on the views, and draws the default instance. -->
- <font-family xmlns:android="http://schemas.android.com/apk/res/android"
-     xmlns:tools="http://schemas.android.com/tools">
-     <font
--        android:font="@font/outfit"
-+        android:font="@font/lexend"
-         android:fontStyle="normal"
-         android:fontWeight="400"
--        android:fontVariationSettings="'wght' 400"
-         tools:targetApi="28" />
- </font-family>
-diff --git a/launcher/app/src/main/res/layout-iw/activity_main.xml b/launcher/app/src/main/res/layout-iw/activity_main.xml
-index 299dedb0..ae5ebdd4 100644
---- a/launcher/app/src/main/res/layout-iw/activity_main.xml
-+++ b/launcher/app/src/main/res/layout-iw/activity_main.xml
-@@ -226,7 +226,7 @@
-                         android:letterSpacing="0.14"
-                         android:textAllCaps="true" />
- 
--                        <!-- Lunar date ("Lunar 13/9 · Year of the Horse"), shown when lunar_date is on. -->
-+                        <!-- Lunar date, shown when lunar_date is on. -->
-                         <TextView
-                             android:id="@+id/lunarDate"
-                             android:gravity="right"
-diff --git a/launcher/app/src/main/res/layout/activity_main.xml b/launcher/app/src/main/res/layout/activity_main.xml
-index 4dd006b4..44d44509 100644
---- a/launcher/app/src/main/res/layout/activity_main.xml
-+++ b/launcher/app/src/main/res/layout/activity_main.xml
-@@ -283,7 +283,7 @@
-                             android:letterSpacing="0.14"
-                             android:textAllCaps="true" />
- 
--                        <!-- Lunar date ("Lunar 13/9 · Year of the Horse"), shown when lunar_date is on. -->
-+                        <!-- Lunar date ("2/9 âm lịch · Bính Ngọ"), shown when lunar_date is on. -->
-                         <TextView
-                             android:id="@+id/lunarDate"
-                             android:gravity="left"
-@@ -298,6 +298,22 @@
-                             android:letterSpacing="0.14"
-                             android:textAllCaps="true"
-                             android:visibility="gone" />
-+                        <!-- CleanTV/VGS: weather line ("30°C Trời quang · Vinh") under the date and lunar lines, at the date's
-+                             size so a long ward name doesn't take over the header (feedback 23/10/2026). -->
-+                        <TextView
-+                            android:id="@+id/weather"
-+                            android:gravity="left"
-+                            android:layout_width="match_parent"
-+                            android:layout_height="wrap_content"
-+                            android:layout_marginTop="4dp"
-+                            android:singleLine="true"
-+                            android:ellipsize="end"
-+                            android:textColor="#B3FFFFFF"
-+                            android:textSize="14sp"
-+                            android:fontFamily="@font/outfit_regular"
-+                            android:letterSpacing="0.04"
-+                            android:includeFontPadding="false"
-+                            android:visibility="gone" />
-                     </LinearLayout>
-                 </LinearLayout>
- 
-@@ -340,6 +356,15 @@
-                     android:drawableStart="@drawable/ic_input"
-                     android:nextFocusDown="@+id/grid" />
- 
-+                <!-- CleanTV/VGS: lối tắt máy chiếu (lấy nét, chỉnh hình…) — hiện khi config.json có projector_actions. -->
-+                <TextView
-+                    android:id="@+id/btnProjector"
-+                    style="@style/TopButton"
-+                    android:text="@string/projector"
-+                    android:drawableStart="@drawable/ic_picture"
-+                    android:visibility="gone"
-+                    android:nextFocusDown="@+id/grid" />
-+
-                 <TextView
-                     android:id="@+id/btnWifi"
-                     style="@style/TopButton"
-@@ -365,6 +390,41 @@
-                     android:drawableStart="@drawable/ic_swap_vert"
-                     android:nextFocusDown="@+id/grid" />
- 
-+                <!-- CleanTV/VGS: app đang phát nhạc / video (now_playing), chỉ hiện khi có. -->
-+                <TextView
-+                    android:id="@+id/btnNowPlaying"
-+                    style="@style/TopButton"
-+                    android:text="@string/now_playing"
-+                    android:drawableStart="@drawable/ic_now_playing"
-+                    android:visibility="gone"
-+                    android:nextFocusDown="@+id/grid" />
-+
-+                <!-- CleanTV/VGS: bật màn hình chờ ngay (dream_button, mặc định bật). -->
-+                <TextView
-+                    android:id="@+id/btnDream"
-+                    style="@style/TopButton"
-+                    android:text="@string/screensaver"
-+                    android:drawableStart="@drawable/ic_dream"
-+                    android:visibility="gone"
-+                    android:nextFocusDown="@+id/grid" />
-+
-+                <TextView
-+                    android:id="@+id/btnSleepTimer"
-+                    style="@style/TopButton"
-+                    android:text="@string/sleep_timer"
-+                    android:drawableStart="@drawable/ic_hen_tat"
-+                    android:visibility="gone"
-+                    android:nextFocusDown="@+id/grid" />
-+
-+                <!-- CleanTV/VGS 4.1.2: cho tivi / máy chiếu ngủ ngay (sleep_button). -->
-+                <TextView
-+                    android:id="@+id/btnSleep"
-+                    style="@style/TopButton"
-+                    android:text="@string/sleep_now"
-+                    android:drawableStart="@drawable/ic_ngu"
-+                    android:visibility="gone"
-+                    android:nextFocusDown="@+id/grid" />
-+
-                 <TextView
-                     android:id="@+id/btnLibraryTop"
-                     style="@style/TopButtonIcon"
-diff --git a/launcher/app/src/main/res/layout/dream_clock.xml b/launcher/app/src/main/res/layout/dream_clock.xml
-index b059bfa0..dc0f6eab 100644
---- a/launcher/app/src/main/res/layout/dream_clock.xml
-+++ b/launcher/app/src/main/res/layout/dream_clock.xml
-@@ -61,5 +61,18 @@
-             android:fontFamily="@string/font_regular"
-             android:letterSpacing="0.14"
-             android:textAllCaps="true" />
-+
-+        <!-- CleanTV/VGS 4.0.8: lunar_date under the date, as on Home (góp ý minhtam202x 07/11/2026). -->
-+        <TextView
-+            android:id="@+id/dreamLunar"
-+            android:layout_width="wrap_content"
-+            android:layout_height="wrap_content"
-+            android:layout_marginStart="6dp"
-+            android:layout_marginTop="4dp"
-+            android:textColor="#73FFFFFF"
-+            android:textSize="16sp"
-+            android:fontFamily="@string/font_regular"
-+            android:letterSpacing="0.06"
-+            android:visibility="gone" />
-     </LinearLayout>
- </FrameLayout>
 diff --git a/launcher/app/src/main/res/values-vi/fonts.xml b/launcher/app/src/main/res/values-vi/fonts.xml
 deleted file mode 100644
 index 9e58a7d8..00000000
@@ -7618,138 +7754,3 @@ index 9e58a7d8..00000000
 -    <string name="font_extralight" translatable="false">sans-serif-thin</string>
 -    <string name="font_medium" translatable="false">sans-serif-medium</string>
 -</resources>
-diff --git a/launcher/app/src/main/res/values-vi/strings.xml b/launcher/app/src/main/res/values-vi/strings.xml
-index f5c94d7d..cf61e1e9 100644
---- a/launcher/app/src/main/res/values-vi/strings.xml
-+++ b/launcher/app/src/main/res/values-vi/strings.xml
-@@ -126,4 +126,23 @@
-     <string name="clock_format_system">Hệ thống</string>
-     <string name="clock_format_12">12 giờ</string>
-     <string name="clock_format_24">24 giờ</string>
-+    <string name="projector">Máy chiếu</string>
-+    <string name="now_playing">Đang phát</string>
-+    <string name="now_playing_pause">Tạm dừng</string>
-+    <string name="now_playing_play">Phát tiếp</string>
-+    <string name="now_playing_stop_all">Dừng tất cả</string>
-+    <string name="now_playing_none">Không có gì đang phát</string>
-+    <string name="screensaver">Màn hình chờ</string>
-+    <string name="stats_cpu">CPU %1$d%%</string>
-+    <string name="storage_gb_whole">%1$.0f GB</string>
-+    <string name="storage_gb_decimal">%1$.1f GB</string>
-+    <!-- CleanTV/VGS: sleep_timer_button -->
-+    <string name="sleep_timer">Hẹn giờ tắt</string>
-+    <string name="sleep_timer_set">Tivi tự tắt sau %1$d phút (bấm tiếp để tăng)</string>
-+    <string name="sleep_timer_off">Đã huỷ hẹn giờ tắt</string>
-+    <string name="sleep_timer_no_helper">Đã hẹn %1$d phút, nhưng tivi chỉ tự tắt được khi bật bộ bắt phím của CleanTV (Android 9 trở lên)</string>
-+    <!-- CleanTV/VGS 4.1.2: sleep_button -->
-+    <string name="sleep_now">Ngủ</string>
-+    <string name="sleep_now_no_helper">Nút Ngủ cần bộ bắt phím của CleanTV: mở CleanTV trên điện thoại, bấm Áp dụng lên tivi lại</string>
-+    <string name="vgs_hidden_no_library">Đã ẩn khỏi Home. Muốn hiện lại: trong CleanTV vào Đổi giao diện Home sạch, bật Thư viện app rồi thêm lại từ Thư viện.</string>
- </resources>
-diff --git a/launcher/app/src/main/res/values/fonts.xml b/launcher/app/src/main/res/values/fonts.xml
-index adbb30db..91098f5c 100644
---- a/launcher/app/src/main/res/values/fonts.xml
-+++ b/launcher/app/src/main/res/values/fonts.xml
-@@ -1,8 +1,8 @@
- <?xml version="1.0" encoding="utf-8"?>
--<!-- The UI fonts, looked up through these strings so a locale can swap in a system family: Outfit has no
-+<!-- CleanTV/VGS: Lexend thay Outfit (đủ dấu tiếng Việt), nên bỏ values-vi/fonts.xml. The UI fonts, looked up through these strings so a locale can swap in a system family: Outfit has no
-      glyphs for most Vietnamese accented letters, so values-vi points them at the system sans-serif (#833). -->
- <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="ReferenceType">
--    <string name="font_body" translatable="false">@font/outfit</string>
-+    <string name="font_body" translatable="false">@font/lexend</string>
-     <string name="font_regular" translatable="false">@font/outfit_regular</string>
-     <string name="font_light" translatable="false">@font/outfit_light</string>
-     <string name="font_extralight" translatable="false">@font/outfit_extralight</string>
-diff --git a/launcher/app/src/main/res/values/strings.xml b/launcher/app/src/main/res/values/strings.xml
-index 2b2b53eb..492d106e 100644
---- a/launcher/app/src/main/res/values/strings.xml
-+++ b/launcher/app/src/main/res/values/strings.xml
-@@ -158,4 +158,20 @@
-     <string name="clock_format_system">System</string>
-     <string name="clock_format_12">12-hour</string>
-     <string name="clock_format_24">24-hour</string>
-+    <string name="projector">Projector</string>
-+    <string name="now_playing">Now playing</string>
-+    <string name="now_playing_pause">Pause</string>
-+    <string name="now_playing_play">Play</string>
-+    <string name="now_playing_stop_all">Stop all</string>
-+    <string name="now_playing_none">Nothing is playing</string>
-+    <string name="screensaver">Screensaver</string>
-+    <!-- CleanTV/VGS: sleep_timer_button -->
-+    <string name="sleep_timer">Sleep timer</string>
-+    <string name="sleep_timer_set">TV turns off in %1$d min (press again for longer)</string>
-+    <string name="sleep_timer_off">Sleep timer off</string>
-+    <string name="sleep_timer_no_helper">Timer set for %1$d min, but the TV can only turn itself off with CleanTV\'s key helper on (Android 9 or later)</string>
-+    <!-- CleanTV/VGS 4.1.2: sleep_button -->
-+    <string name="sleep_now">Sleep</string>
-+    <string name="sleep_now_no_helper">Sleep needs CleanTV\'s key helper on: open CleanTV on your phone and apply to the TV again</string>
-+    <string name="vgs_hidden_no_library">Hidden from Home. To bring it back, turn on the app library in CleanTV (Change the clean Home look) and add it from there.</string>
- </resources>
-diff --git a/launcher/app/src/main/res/xml/home_key_service.xml b/launcher/app/src/main/res/xml/home_key_service.xml
-index 49565e22..a67dadc9 100644
---- a/launcher/app/src/main/res/xml/home_key_service.xml
-+++ b/launcher/app/src/main/res/xml/home_key_service.xml
-@@ -2,9 +2,13 @@
- <!-- Keys only: no accessibilityEventTypes (0), so the system never calls into the launcher for
-      accessibility events, which both services ignore. Key filtering depends only on
-      flagRequestFilterKeyEvents and canRequestFilterKeyEvents, not on the event types.
--     stock_home_redirect is the exception: with it set, HomeKeyService adds typeWindowStateChanged at runtime. -->
-+     stock_home_redirect is the exception: with it set, HomeKeyService adds typeWindowStateChanged at runtime.
-+     CleanTV/VGS: canRetrieveWindowContent for the phone remote's typing (TYPE_TEXT): it sets the text of the focused
-+     field, still with no events. flagRetrieveInteractiveWindows is turned on only while typing (HomeKeyService):
-+     kept on, the window tracking slowed the remote on a weak ATV11 box (27/10/2026). -->
- <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-     android:accessibilityFeedbackType="feedbackGeneric"
-     android:accessibilityFlags="flagRequestFilterKeyEvents"
-     android:canRequestFilterKeyEvents="true"
-+    android:canRetrieveWindowContent="true"
-     android:description="@string/home_key_description" />
-diff --git a/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java b/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
-index 9d388d3c..1b60b9ce 100644
---- a/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
-+++ b/launcher/app/src/test/java/com/gathin/tvhome/RemoteKeysTest.java
-@@ -108,6 +108,12 @@ public class RemoteKeysTest {
-         // and the keycode parser leaves scancode entries alone
-         assertEquals(1, parse(entries.toArray(new String[0])).size());
-     }
-+    // CleanTV/VGS: scancode 240 (KEY_UNKNOWN) is shared by every TCL app button, so it never maps one.
-+    @Test public void unknownScancodeIgnored() {
-+        Map<Integer, String> scans = RemoteKeys.parseAppScancodes(Arrays.asList("scan:240:com.google.android.youtube.tv", "scan:490:a.b"));
-+        assertEquals(1, scans.size());
-+        assertEquals(null, scans.get(240));
-+    }
-     @Test public void inputTargets() {
-         String hdmi = "com.tcl.tvinput/.passthroughinput.TvPassThroughService/HW1413743104";
-         Map<Integer, String> keys = parse("4062:input:" + hdmi);
-diff --git a/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java b/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java
-new file mode 100644
-index 00000000..fcf5287b
---- /dev/null
-+++ b/launcher/app/src/test/java/com/gathin/tvhome/SleepTimerTest.java
-@@ -0,0 +1,25 @@
-+package com.gathin.tvhome;
-+
-+import static org.junit.Assert.assertEquals;
-+
-+import org.junit.Test;
-+
-+public class SleepTimerTest {
-+    @Test
-+    public void eachPressMovesToTheNextStep() {
-+        assertEquals(15, SleepTimer.nextStep(0));
-+        assertEquals(30, SleepTimer.nextStep(15));
-+        assertEquals(30, SleepTimer.nextStep(14));
-+        assertEquals(60, SleepTimer.nextStep(30));
-+        assertEquals(90, SleepTimer.nextStep(60));
-+        assertEquals(0, SleepTimer.nextStep(90));
-+    }
-+
-+    @Test
-+    public void minutesLeftRoundUpAndEndAtZero() {
-+        assertEquals(0, SleepTimer.minutesLeft(0, 1_000));
-+        assertEquals(0, SleepTimer.minutesLeft(1_000, 1_000));
-+        assertEquals(1, SleepTimer.minutesLeft(61_000, 60_000));
-+        assertEquals(15, SleepTimer.minutesLeft(15 * 60_000L, 0));
-+    }
-+}
