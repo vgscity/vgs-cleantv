@@ -15,6 +15,17 @@ class AppNgoaiTest {
         assertEquals(setOf("vn.phim4k"), r)
     }
 
+    @Test fun appCoSanChonVaoDockCungDuocThem() {
+        val r = AppNgoai.loc(
+            tuCai = setOf("vn.phim4k"),
+            loiDienThoai = setOf("vn.phim4k", "com.zhiying.appstore", "com.netflix.mediaclient", "com.google.android.youtube.tv"),
+            loiTivi = setOf("com.google.android.youtube.tv"),
+            nhanHome = emptySet(),
+            chonDock = setOf("com.zhiying.appstore", "com.netflix.mediaclient", "com.google.android.youtube.tv", "zone.vgs.cleantv", "khong.cai"),
+        )
+        assertEquals(setOf("vn.phim4k", "com.zhiying.appstore", "com.netflix.mediaclient"), r)
+    }
+
     @Test fun gopGiuLibraryCuVaBoHidden() {
         val json = """{"library_apps":["a.b"],"hidden_apps":["x.y"]}"""
         val j = JSONObject(AppNgoai.gop(json, setOf("a.b", "x.y", "c.d")))

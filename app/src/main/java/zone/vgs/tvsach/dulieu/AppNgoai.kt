@@ -11,9 +11,13 @@ import org.json.JSONObject
  * trên tivi vẫn thắng library_apps, nên người dùng ẩn lại được ngay trên tivi.
  */
 object AppNgoai {
-    /** App tự cài + có lối vào điện thoại − có lối vào tivi − app nhận Home − gói của CleanTV / Home sạch. */
-    fun loc(tuCai: Set<String>, loiDienThoai: Set<String>, loiTivi: Set<String>, nhanHome: Set<String>): Set<String> =
-        tuCai.filter { it in loiDienThoai && it !in loiTivi && it !in nhanHome && !laGoiCleanTv(it) }.toSortedSet()
+    /**
+     * (App tự cài + app người dùng chọn vào dock) có lối vào điện thoại − có lối vào tivi − app nhận Home − gói CleanTV / Home sạch.
+     * [chonDock] (4.1.6, góp ý truongvantung2002 máy chiếu Cheerlux): app có sẵn của máy kiểu điện thoại (Appstore hãng, Netflix
+     * bản điện thoại) chọn vào dock mà Home sạch không hiện vì không phải app tự cài.
+     */
+    fun loc(tuCai: Set<String>, loiDienThoai: Set<String>, loiTivi: Set<String>, nhanHome: Set<String>, chonDock: Set<String> = emptySet()): Set<String> =
+        (tuCai + chonDock).filter { it in loiDienThoai && it !in loiTivi && it !in nhanHome && !laGoiCleanTv(it) }.toSortedSet()
 
     private fun laGoiCleanTv(pkg: String) = pkg == "com.gathin.tvhome" || pkg == "zone.vgs.cleantv" || pkg.startsWith("zone.vgs.cleantv.")
 

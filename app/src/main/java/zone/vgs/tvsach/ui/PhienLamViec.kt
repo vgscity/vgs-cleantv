@@ -1345,7 +1345,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
 
     /** App tự cài kiểu điện thoại (Phim4K…) vào library_apps để hiện trên Home sạch; dò lỗi thì gửi nguyên cấu hình. */
     private suspend fun voiAppNgoai(json: String): String =
-        runCatching { zone.vgs.tvsach.dulieu.AppNgoai.gop(json, io { tv.appNgoaiKhongLoiTv() }) }.getOrDefault(json)
+        runCatching { zone.vgs.tvsach.dulieu.AppNgoai.gop(json, io { tv.appNgoaiKhongLoiTv(dock.toSet()) }) }.getOrDefault(json)
 
     // ---------- Lưu / mở file cấu hình (góp ý 9000000, 23/10/2026) ----------
     var cauHinhBao by mutableStateOf("")

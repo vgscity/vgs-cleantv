@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.6",
+  "ngay": "2026-11-16",
+  "vi": [
+   "App kiểu điện thoại có sẵn trên máy (Appstore của hãng, Netflix bản điện thoại…) mà bạn chọn vào dock giờ hiện trên Home sạch."
+  ],
+  "en": [
+   "Phone-style apps that came with the TV (the maker's app store, Netflix phone version…) now show on the clean Home when you pick them for the dock."
+  ]
+ },
+ {
   "ban": "4.1.5",
   "ngay": "2026-11-15",
   "vi": [
