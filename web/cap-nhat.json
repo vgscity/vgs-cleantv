@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 126,
-  "versionName": "4.1.6",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.6.apk",
-  "co": 12618229,
-  "ghiChu": "App kiểu điện thoại có sẵn trên máy (Appstore của hãng, Netflix bản điện thoại…) mà bạn chọn vào dock giờ hiện trên Home sạch.",
-  "ghiChuEn": "Phone-style apps that came with the TV (the maker's app store, Netflix phone version…) now show on the clean Home when you pick them for the dock.",
-  "ngay": "2026-11-16"
+  "versionCode": 127,
+  "versionName": "4.1.7",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.7.apk",
+  "co": 12637225,
+  "ghiChu": "Home sạch: giữ OK ở nút Cài đặt → Tuỳ chọn nhà phát triển để bật lại Gỡ lỗi USB (máy chiếu giấu mục này). Tivi đã dọn thì báo lỗi được ngay sau khi kết nối. Cập nhật launcher mới: cài đặt TCL, sửa dock.",
+  "ghiChuEn": "Clean Home: hold OK on Settings → Developer options to turn USB debugging back on (some projectors hide it). Already-cleaned TVs can report a problem right after connecting. Launcher update: TCL settings, dock fixes.",
+  "ngay": "2026-11-18"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "fee14dd1acfbbfc7",
+   "phienBan": "5e519c015bb1a347",
    "url": "/ota/du-lieu.json",
-   "co": 2922382,
-   "tuBan": 126
+   "co": 2987156,
+   "tuBan": 127
   },
   "tvhome.apk": {
-   "phienBan": "baee23576e2988e1",
+   "phienBan": "316e750a5129bd11",
    "url": "/ota/tvhome.apk",
-   "co": 708561,
-   "tuBan": 126
+   "co": 710017,
+   "tuBan": 127
   }
  }
 }

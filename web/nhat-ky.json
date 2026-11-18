@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.7",
+  "ngay": "2026-11-18",
+  "vi": [
+   "Home sạch: giữ OK ở nút Cài đặt → Tuỳ chọn nhà phát triển để bật lại Gỡ lỗi USB (máy chiếu giấu mục này). Tivi đã dọn thì báo lỗi được ngay sau khi kết nối. Cập nhật launcher mới: cài đặt TCL, sửa dock."
+  ],
+  "en": [
+   "Clean Home: hold OK on Settings → Developer options to turn USB debugging back on (some projectors hide it). Already-cleaned TVs can report a problem right after connecting. Launcher update: TCL settings, dock fixes."
+  ]
+ },
+ {
   "ban": "4.1.6",
   "ngay": "2026-11-16",
   "vi": [

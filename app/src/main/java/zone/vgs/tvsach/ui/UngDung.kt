@@ -813,7 +813,8 @@ private fun ManThongTin(vm: PhienLamViec) = Cuon {
     else NutPhu(t("Bật lại app đã tắt", "Re-enable disabled apps"), Icons.Rounded.Restore) { vm.man = Man.KHOI_PHUC }
     // CleanTV chạy trên tivi (29/10/2026, anh Alex): báo lỗi ngay sau khi kết nối, không phải dọn / Áp dụng tới màn Xong.
     // App đã có ADB vào chính tivi nên gửi đủ chẩn đoán như bên điện thoại.
-    if (zone.vgs.tvsach.ManHinh.laTv) TheGuiDanhSach(vm, baoLoi = true)
+    // Trên điện thoại (4.1.7, 18/11/2026): tivi đã dọn / đã có Home sạch thì báo lỗi được ngay, không phải dọn lại tới màn Xong.
+    if (zone.vgs.tvsach.ManHinh.laTv || vm.daCoHomeSach || vm.saoLuu != null || vm.coDauCleanTv) TheGuiDanhSach(vm, baoLoi = true)
 }
 
 @Composable
@@ -1595,6 +1596,9 @@ private fun ManXong(vm: PhienLamViec) = Cuon {
             // Remote trên điện thoại đi qua ADB: chọn nó là giữ ADB.
             if (!zone.vgs.tvsach.ManHinh.laTv) NutPhu(t("Giữ ADB và dùng remote trên điện thoại", "Keep ADB and use the phone remote"), Icons.Rounded.SettingsRemote) { vm.chonGiuAdb { vm.moRemote() } }
             val phut = vm.phutTuTatAdb
+            // Góp ý hanhphucnoidau1999 18/11/2026: máy chiếu nội địa giấu chỗ bật Gỡ lỗi USB, ADB tắt là phải khôi phục gốc.
+            Phu(t("Tivi / máy chiếu không có chỗ bật lại Gỡ lỗi USB trong Cài đặt thì chọn Giữ ADB. Lỡ tắt rồi: trên tivi giữ OK ở nút Cài đặt của Home sạch → \"Tuỳ chọn nhà phát triển\".",
+                "If the TV / projector has no place in Settings to turn USB debugging back on, keep ADB. Already off: on the TV hold OK on the clean Home's Settings button → \"Developer options\"."), Cam)
             Phu(t("Chưa chọn mà rời app quá $phut phút thì tivi tự tắt ADB.", if (phut == 1) "Leave the app for over a minute without choosing and the TV turns ADB off itself." else "Leave the app for over $phut minutes without choosing and the TV turns ADB off itself."))
         }
     }

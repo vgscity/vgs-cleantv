@@ -98,7 +98,7 @@ index 00000000..b1477aae
 +FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 +OTHER DEALINGS IN THE FONT SOFTWARE.
 diff --git a/launcher/app/src/main/AndroidManifest.xml b/launcher/app/src/main/AndroidManifest.xml
-index ca18afa9..33c27e86 100644
+index ca18afa9..2fc263f4 100644
 --- a/launcher/app/src/main/AndroidManifest.xml
 +++ b/launcher/app/src/main/AndroidManifest.xml
 @@ -8,6 +8,11 @@
@@ -125,7 +125,17 @@ index ca18afa9..33c27e86 100644
          <!-- The standard settings handlers, so package visibility doesn't hide them and send the pills to a vendor fallback by mistake. -->
          <intent>
              <action android:name="android.settings.SETTINGS" />
-@@ -70,6 +80,8 @@
+@@ -32,6 +42,9 @@
+         <intent>
+             <action android:name="android.settings.WIFI_SETTINGS" />
+         </intent>
++        <intent>
++            <action android:name="android.settings.APPLICATION_DEVELOPMENT_SETTINGS" />
++        </intent>
+         <intent>
+             <action android:name="android.settings.DISPLAY_SETTINGS" />
+         </intent>
+@@ -70,6 +83,8 @@
          <provider android:authorities="com.skyworth.tv.sdk.provider" />
      </queries>
  
@@ -134,7 +144,7 @@ index ca18afa9..33c27e86 100644
      <application
          android:label="@string/app_name"
          android:icon="@mipmap/ic_launcher"
-@@ -187,6 +199,14 @@
+@@ -187,6 +202,14 @@
  
          <!-- stock_home_redirect at boot: HomeKeyService opens this invisible activity once, so the screen behind
               it sends a window event when it closes (HomeKeyService.probeAtBoot). -->
@@ -149,7 +159,7 @@ index ca18afa9..33c27e86 100644
          <activity
              android:name=".ProbeActivity"
              android:exported="false"
-@@ -197,6 +217,17 @@
+@@ -197,6 +220,17 @@
  
          <!-- Screensaver: pick it in Settings, or `settings put secure screensaver_components
               com.gathin.tvhome/.ClockDream` over adb. -->
@@ -167,7 +177,7 @@ index ca18afa9..33c27e86 100644
          <service
              android:name=".ClockDream"
              android:label="@string/dream_name"
-@@ -231,6 +262,16 @@
+@@ -231,6 +265,16 @@
                  <action android:name="android.service.notification.NotificationListenerService" />
              </intent-filter>
          </service>
@@ -184,7 +194,7 @@ index ca18afa9..33c27e86 100644
          <receiver
              android:name=".GuardConfig"
              android:exported="true"
-@@ -252,5 +293,7 @@
+@@ -252,5 +296,7 @@
                  android:name="android.accessibilityservice"
                  android:resource="@xml/input_key_service" />
          </service>
@@ -615,10 +625,10 @@ index 00000000..e17d01bc
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/ClockScene.java b/launcher/app/src/main/java/com/gathin/tvhome/ClockScene.java
-index d56e19f8..aa5c7b29 100644
+index d8b18de1..be5fd7b4 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/ClockScene.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/ClockScene.java
-@@ -60,6 +60,17 @@ final class ClockScene {
+@@ -62,6 +62,17 @@ final class ClockScene {
      private List<File> rotation;
      private long rotationMs;
      private long shownMs;
@@ -636,7 +646,7 @@ index d56e19f8..aa5c7b29 100644
      private String order;
      private Map<String, Set<String>> moods;
      private String latitude, longitude;
-@@ -68,6 +79,7 @@ final class ClockScene {
+@@ -70,6 +81,7 @@ final class ClockScene {
          @Override
          public void run() {
              moveClock();
@@ -644,7 +654,7 @@ index d56e19f8..aa5c7b29 100644
              shiftGlow();
              advanceWallpaper();
              handler.postDelayed(this, MOVE_MS);
-@@ -86,6 +98,33 @@ final class ClockScene {
+@@ -88,6 +100,33 @@ final class ClockScene {
                  glow.setGradientRadius((r - l) * 0.55f));
          colorIndex = random.nextInt(PALETTE.length);
          setGlow(PALETTE[colorIndex]);
@@ -678,7 +688,7 @@ index d56e19f8..aa5c7b29 100644
      }
  
      void start() {
-@@ -97,6 +136,8 @@ final class ClockScene {
+@@ -99,6 +138,8 @@ final class ClockScene {
          handler.removeCallbacks(tick);
          handler.postDelayed(tick, MOVE_MS);
          clockRefresh.start();
@@ -687,7 +697,7 @@ index d56e19f8..aa5c7b29 100644
          if (wallpaperFile != null && !wallpaperShown) loadWallpaper();
      }
  
-@@ -104,6 +145,7 @@ final class ClockScene {
+@@ -106,6 +147,7 @@ final class ClockScene {
          handler.removeCallbacksAndMessages(null);   // the tick and any glow steps still queued
          clockRefresh.stop();
          content.animate().cancel();
@@ -695,15 +705,15 @@ index d56e19f8..aa5c7b29 100644
          wallpaperGeneration++;   // a decode still running must not attach its picture to a stopped scene
      }
  
-@@ -129,6 +171,7 @@ final class ClockScene {
-             }
-             return;
-         }
+@@ -127,6 +169,7 @@ final class ClockScene {
+         glowOff = !cfg.clockGlow;
+         if (glowOff) ambient.setBackground(null);
+         if (!cfg.clockWallpaper) return;
 +        motion = Weather.flag(ctx, "dream_motion", false);
          // What Home plays, and Config puts the single wallpaper in it when a theme has no collection.
          // Reading cfg.wallpaper first held the screensaver on wallpaper.jpg while Home rotated.
          if (cfg.wallpapers.isEmpty()) {
-@@ -172,8 +215,7 @@ final class ClockScene {
+@@ -170,8 +213,7 @@ final class ClockScene {
                  // As the image, not the background: a background is stretched to the view, so a picture of
                  // another shape than the screen would be distorted. centerCrop scales and crops it like Home.
                  ambient.setBackground(null);
@@ -713,7 +723,7 @@ index d56e19f8..aa5c7b29 100644
              });
          }, "clock-wallpaper").start();
      }
-@@ -205,6 +247,7 @@ final class ClockScene {
+@@ -203,6 +245,7 @@ final class ClockScene {
  
      /** Step to the next picture once its turn is up; the tick already runs every minute. */
      private void advanceWallpaper() {
@@ -721,7 +731,7 @@ index d56e19f8..aa5c7b29 100644
          if (rotation == null || rotationMs <= 0 || rotation.size() < 2) return;
          shownMs += MOVE_MS;
          if (shownMs < rotationMs) return;
-@@ -218,6 +261,56 @@ final class ClockScene {
+@@ -216,6 +259,56 @@ final class ClockScene {
          loadWallpaper();
      }
  
@@ -1279,10 +1289,21 @@ index 4d0b9b5b..b57808bf 100644
          if (repairRecord) ServiceRepair.disconnected(this, getClass());
          return super.onUnbind(intent);
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
-index 60ea401c..7e7babbf 100644
+index 60ea401c..779a4f2d 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/LauncherSettingsActivity.java
-@@ -232,6 +232,9 @@ public final class LauncherSettingsActivity extends Activity {
+@@ -172,6 +172,10 @@ public final class LauncherSettingsActivity extends Activity {
+                 open(new Intent(this, HomeSettingsActivity.class)));
+         findViewById(R.id.tvSettingsChoice).setOnClickListener(v ->
+                 open(SystemSettings.intent(this, Settings.ACTION_SETTINGS)));
++        Intent dev = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
++        View devChoice = findViewById(R.id.devSettingsChoice);
++        if (dev.resolveActivity(getPackageManager()) != null) devChoice.setOnClickListener(v -> open(dev));
++        else devChoice.setVisibility(View.GONE);
+         refresh();
+         if (config.launcherSettingsButton) reorderChoice.requestFocus();
+         else columnChoices[Math.max(0, Math.min(columns - 4, 3))].requestFocus();
+@@ -232,6 +236,9 @@ public final class LauncherSettingsActivity extends Activity {
              if (!seen) apps.add(new String[]{r.loadLabel(pm).toString(), pkg});
          }
          Collections.sort(apps, (a, b) -> a[0].compareToIgnoreCase(b[0]));
@@ -1292,7 +1313,7 @@ index 60ea401c..7e7babbf 100644
          String[] labels = new String[apps.size() + 1];
          labels[0] = getString(R.string.off);
          String current = choices.getString(OpenOnStart.KEY, "");
-@@ -259,6 +262,10 @@ public final class LauncherSettingsActivity extends Activity {
+@@ -259,6 +266,10 @@ public final class LauncherSettingsActivity extends Activity {
      private String openOnStartLabel() {
          String pkg = choices.getString(OpenOnStart.KEY, "");
          if (pkg.isEmpty()) return getString(R.string.off);
@@ -1546,7 +1567,7 @@ index 00000000..0bc32d9d
 +    }
 +}
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
-index 717aa158..7a0e8efa 100644
+index eccf73fe..1503b66d 100644
 --- a/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 +++ b/launcher/app/src/main/java/com/gathin/tvhome/MainActivity.java
 @@ -191,6 +191,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
@@ -1998,7 +2019,7 @@ index 717aa158..7a0e8efa 100644
          reordering = true;
          orderAtStart = adapter.movableKeys();
          glass.setAccent(REORDER_ACCENT);
-@@ -1701,7 +1989,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1699,7 +1987,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  Toast.makeText(this, R.string.reorder_not_saved, Toast.LENGTH_SHORT).show();
              }
          }
@@ -2007,7 +2028,7 @@ index 717aa158..7a0e8efa 100644
      }
  
      /**
-@@ -1789,6 +2077,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1787,6 +2075,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          if (openPopup != null) openPopup.dismiss();
          libraryFocusPending = false;
          libraryFromTopBar = false;
@@ -2015,7 +2036,7 @@ index 717aa158..7a0e8efa 100644
          libraryFromVpnPill = false;
          appLibrary = new AppLibraryDialog(this, animations, reducedMotion, appLibrarySelection, libraryOkOpens, adapter::containsPackage, () -> reloadApps(false), () -> {
              appLibrary = null;
-@@ -1798,6 +2087,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -1796,6 +2085,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
                  btnLibraryTop.requestFocus();
                  return;
              }
@@ -2027,7 +2048,7 @@ index 717aa158..7a0e8efa 100644
              boolean fromVpnPill = libraryFromVpnPill;
              libraryFromVpnPill = false;
              // The VPN pill can hide while the library is open (its VPN dropped): then focus goes as from the grid.
-@@ -2261,6 +2555,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2259,6 +2553,30 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          else glass.setAlpha(0f);
      }
  
@@ -2058,7 +2079,7 @@ index 717aa158..7a0e8efa 100644
      // ---- optional system stats (config.xml show_stats) --------------------------------------------
  
      /** Background reader. Started only while Home is resumed and show_stats is on. */
-@@ -2325,13 +2643,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -2323,13 +2641,24 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
          // showing a dash that never fills in.
          StringBuilder line = new StringBuilder();
          if (cpu >= 0) line.append(getString(R.string.stats_cpu, cpu));
@@ -2086,7 +2107,7 @@ index 717aa158..7a0e8efa 100644
      // -1: need another sample. -2: this source cannot be read (Android 9 hides /proc/stat from apps).
      private static final int CPU_UNREADABLE = -2;
      private long cpuTotalPrev = -1, cpuIdlePrev = -1;
-@@ -3014,7 +3343,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3012,7 +3341,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              text = stub || icon == R.drawable.ic_ethernet ? "" : name;
              SpannableString label = new SpannableString(text + " " + badge);
              label.setSpan(span, text.length() + 1, label.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -2099,7 +2120,7 @@ index 717aa158..7a0e8efa 100644
          } else if (!TextUtils.equals(btnWifi.getText(), text)) {
              btnWifi.setText(text);
          }
-@@ -3057,6 +3390,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3055,6 +3388,8 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private View btnLibraryTop;
      /** The open library came from that button: closing it returns there instead of scrolling to the grid's end. */
      private boolean libraryFromTopBar;
@@ -2108,7 +2129,7 @@ index 717aa158..7a0e8efa 100644
      /** The open library came from the VPN pill (vpn_pill, no VPN app): closing it returns there while the pill still shows. */
      private boolean libraryFromVpnPill;
  
-@@ -3258,9 +3593,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3256,9 +3591,36 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              openInput(bootInputId);
              return true;
          }
@@ -2147,7 +2168,7 @@ index 717aa158..7a0e8efa 100644
      }
  
      /** open_on_start_on_wake: the remote's power button is a light sleep on some sets, with no boot for
-@@ -3268,7 +3630,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3266,7 +3628,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      private void openStartAppOnWake() {
          String app = getSharedPreferences(Config.SETTINGS_NAME, MODE_PRIVATE).getString(OpenOnStart.KEY, "");
          if (app.isEmpty() || app.equals(getPackageName())) return;
@@ -2156,7 +2177,7 @@ index 717aa158..7a0e8efa 100644
          if (i != null) openWhenReady(i);
      }
  
-@@ -3333,7 +3695,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3331,7 +3693,32 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
       *  source number; "HW8=-" leaves that input out of the Inputs menu (a port the board reports but the set
       *  does not have). Returns the number, -1 for a left-out input, or null when the input is not listed. */
      private Integer mappedSource(String inputId) {
@@ -2190,7 +2211,15 @@ index 717aa158..7a0e8efa 100644
      }
  
      /** Switches to a passthrough input (HDMI, AV). An input mapped in `input_sources` is opened by sending
-@@ -3738,8 +4125,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3733,11 +4120,21 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+                 if (vendor != null) open(vendor);
+             });
+         }
++        // CleanTV/VGS (hanhphucnoidau1999, 18/11/2026): projectors that hide Developer options in Settings could not turn
++        // ADB back on once it was off. Open that page directly while the TV has one.
++        Intent devOptions = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
++        if (devOptions.resolveActivity(getPackageManager()) != null)
++            addSettingsMenuRow(rows, popup, R.string.quick_developer, () -> open(devOptions));
          if (moduleCards) addSettingsMenuRow(rows, popup, R.string.module_cards, this::showModuleCards);
          if (dockRow) addSettingsMenuRow(rows, popup, R.string.dock_edit, this::startDockEdit);
          addSettingsMenuRow(rows, popup, R.string.reorder, this::toggleReorder);
@@ -2205,7 +2234,7 @@ index 717aa158..7a0e8efa 100644
          panel.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
          popup.setWidth(Math.max((int) (200 * density), panel.getMeasuredWidth()));
          // Hebrew puts Settings at the left of the header: grow the menu inward from it.
-@@ -3865,9 +4257,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3863,9 +4260,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              pickUp(at);
              Toast.makeText(this, R.string.reorder_hint, Toast.LENGTH_LONG).show();
          });
@@ -2222,7 +2251,7 @@ index 717aa158..7a0e8efa 100644
          });
          // Some firmware has no App info page at all; a row that only toasts "can't open" helps nobody.
          Intent info = SystemSettings.appInfo(this, pkg);
-@@ -3889,10 +4285,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
+@@ -3887,10 +4288,143 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
              panel.animate().alpha(1f).scaleY(1f).translationY(0f).setDuration(220)
                      .setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f)).start();
          }
@@ -2506,6 +2535,22 @@ index 3bc5b122..8681b934 100644
      /** The app's TV entry point, or its phone one; null when it is uninstalled or disabled, so Home stays. */
      static Intent intent(PackageManager pm, String pkg) {
          Intent i = pm.getLeanbackLaunchIntentForPackage(pkg);
+diff --git a/launcher/app/src/main/java/com/gathin/tvhome/QuickSettingsActivity.java b/launcher/app/src/main/java/com/gathin/tvhome/QuickSettingsActivity.java
+index 4d65ff24..937a1d7d 100644
+--- a/launcher/app/src/main/java/com/gathin/tvhome/QuickSettingsActivity.java
++++ b/launcher/app/src/main/java/com/gathin/tvhome/QuickSettingsActivity.java
+@@ -45,6 +45,11 @@ public final class QuickSettingsActivity extends Activity {
+         addRow(rows, R.drawable.ic_wifi, R.string.quick_network, 0, SystemSettings.intent(this, Settings.ACTION_WIFI_SETTINGS));
+         addRow(rows, R.drawable.ic_apps, R.string.quick_apps, R.string.quick_apps_hint,
+                 SystemSettings.intent(this, Settings.ACTION_MANAGE_APPLICATIONS_SETTINGS));
++        // CleanTV (18/11/2026, góp ý hanhphucnoidau1999): máy chiếu nội địa giấu Tuỳ chọn nhà phát triển trong Cài đặt,
++        // ADB tắt rồi là không bật lại được, phải khôi phục gốc. Mở thẳng màn đó; tivi không có thì không hiện dòng.
++        Intent dev = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
++        if (dev.resolveActivity(getPackageManager()) != null)
++            addRow(rows, R.drawable.ic_settings, R.string.quick_developer, R.string.quick_developer_hint, dev);
+         // Through Home, so it rebuilds with the new choices when Launcher settings closes.
+         addRow(rows, R.drawable.ic_home_settings, R.string.launcher_settings, 0,
+                 new Intent(this, MainActivity.class).setAction(MainActivity.ACTION_LAUNCHER_SETTINGS));
 diff --git a/launcher/app/src/main/java/com/gathin/tvhome/QuietBehind.java b/launcher/app/src/main/java/com/gathin/tvhome/QuietBehind.java
 new file mode 100644
 index 00000000..bfe1a4e8
@@ -6342,6 +6387,23 @@ index 299dedb0..ae5ebdd4 100644
                          <TextView
                              android:id="@+id/lunarDate"
                              android:gravity="right"
+diff --git a/launcher/app/src/main/res/layout/activity_launcher_settings.xml b/launcher/app/src/main/res/layout/activity_launcher_settings.xml
+index 601a7de2..f5fe73b6 100644
+--- a/launcher/app/src/main/res/layout/activity_launcher_settings.xml
++++ b/launcher/app/src/main/res/layout/activity_launcher_settings.xml
+@@ -169,5 +169,12 @@
+             style="@style/SettingsRow"
+             android:layout_marginTop="18dp"
+             android:text="@string/tv_settings" />
++
++        <!-- CleanTV: mở thẳng Tuỳ chọn nhà phát triển (máy chiếu giấu mục này); ẩn nếu tivi không có. -->
++        <TextView
++            android:id="@+id/devSettingsChoice"
++            style="@style/SettingsRow"
++            android:layout_marginTop="8dp"
++            android:text="@string/quick_developer_row" />
+     </LinearLayout>
+ </ScrollView>
 diff --git a/launcher/app/src/main/res/layout/activity_main.xml b/launcher/app/src/main/res/layout/activity_main.xml
 index 4dd006b4..44d44509 100644
 --- a/launcher/app/src/main/res/layout/activity_main.xml
@@ -6460,10 +6522,20 @@ index b059bfa0..dc0f6eab 100644
      </LinearLayout>
  </FrameLayout>
 diff --git a/launcher/app/src/main/res/values-vi/strings.xml b/launcher/app/src/main/res/values-vi/strings.xml
-index f5c94d7d..cf61e1e9 100644
+index f5c94d7d..5e898a1d 100644
 --- a/launcher/app/src/main/res/values-vi/strings.xml
 +++ b/launcher/app/src/main/res/values-vi/strings.xml
-@@ -126,4 +126,23 @@
+@@ -44,6 +44,9 @@
+     <string name="quick_network">Mạng</string>
+     <string name="quick_apps">Ứng dụng</string>
+     <string name="quick_apps_hint">Bật lại</string>
++    <string name="quick_developer">Tuỳ chọn nhà phát triển</string>
++    <string name="quick_developer_hint">Bật lại Gỡ lỗi USB</string>
++    <string name="quick_developer_row">Tuỳ chọn nhà phát triển (bật lại Gỡ lỗi USB)</string>
+     <string name="on">Bật</string>
+     <string name="off">Tắt</string>
+     <string name="enable">Bật</string>
+@@ -126,4 +129,23 @@
      <string name="clock_format_system">Hệ thống</string>
      <string name="clock_format_12">12 giờ</string>
      <string name="clock_format_24">24 giờ</string>
@@ -6503,10 +6575,20 @@ index adbb30db..91098f5c 100644
      <string name="font_light" translatable="false">@font/outfit_light</string>
      <string name="font_extralight" translatable="false">@font/outfit_extralight</string>
 diff --git a/launcher/app/src/main/res/values/strings.xml b/launcher/app/src/main/res/values/strings.xml
-index 2b2b53eb..492d106e 100644
+index 2b2b53eb..8b42f96c 100644
 --- a/launcher/app/src/main/res/values/strings.xml
 +++ b/launcher/app/src/main/res/values/strings.xml
-@@ -158,4 +158,20 @@
+@@ -71,6 +71,9 @@
+     <string name="quick_network">Network</string>
+     <string name="quick_apps">Apps</string>
+     <string name="quick_apps_hint">Re-enable</string>
++    <string name="quick_developer">Developer options</string>
++    <string name="quick_developer_hint">Turn USB debugging back on</string>
++    <string name="quick_developer_row">Developer options (turn USB debugging back on)</string>
+     <string name="on">On</string>
+     <string name="off">Off</string>
+     <string name="enable">Enable</string>
+@@ -158,4 +161,20 @@
      <string name="clock_format_system">System</string>
      <string name="clock_format_12">12-hour</string>
      <string name="clock_format_24">24-hour</string>
