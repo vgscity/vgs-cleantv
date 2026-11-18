@@ -101,8 +101,10 @@ object KeHoach {
     /**
      * Nút mic / tìm bằng giọng nói (22/10/2026: Mi Box S mất giọng nói vì danh sách tắt katniss "personal choice").
      * com.tcl.assistant: nút mic remote TCL BeyondTV chạy qua nó, tắt thì hiện màn tìm mà không thu tiếng (danh sách 225, 28/10/2026).
+     * 4.1.8 (18/11/2026): trợ lý giọng nói của hãng — Xiaomi XiaoAI (voicecontrol, #469 MiTV-ASTR0 mất mic ở Home),
+     * Sony voicesearch / assistantadapter, Skyworth, Haier — trước lẫn vào danh sách thường.
      */
-    private val GIONG_NOI = Regex("""^com\.google\.android\.katniss$|^com\.google\.android\.speech\.pumpkin$|^com\.google\.android\.(apps\.)?tv\.assistant$|^com\.google\.android\.googlequicksearchbox$|^com\.tcl\.assistant$""")
+    private val GIONG_NOI = Regex("""^com\.google\.android\.katniss$|^com\.google\.android\.speech\.pumpkin$|^com\.google\.android\.(apps\.)?tv\.assistant$|^com\.google\.android\.googlequicksearchbox$|^com\.tcl\.assistant$|^com\.xiaomi\.voicecontrol$|^com\.sony\.dtv\.(voicesearch|assistantadapter)$|^com\.skyworth\.angel\.voice$|^com\.haier\.(tv\.intelligentvoice|voicehelper)$""")
 
     /**
      * Nhóm trong danh sách đúng mẫu mà người làm danh sách ghi là tắt THEO Ý RIÊNG ("off by choice", "personal choice",

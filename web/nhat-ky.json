@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.8",
+  "ngay": "2026-11-18",
+  "vi": [
+   "Trợ lý giọng nói của Xiaomi, Sony, Skyworth, Haier vào nhóm Tìm kiếm giọng nói: không tự tích, có cảnh báo nút mic, tránh lỡ tắt mất giọng nói."
+  ],
+  "en": [
+   "Xiaomi, Sony, Skyworth and Haier voice assistants now sit in the Voice search group: never pre-ticked, with a mic-button warning."
+  ]
+ },
+ {
   "ban": "4.1.7",
   "ngay": "2026-11-18",
   "vi": [

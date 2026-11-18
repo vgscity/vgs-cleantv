@@ -24,6 +24,14 @@ class KeHoachTest {
         assertFalse("katniss không được tích sẵn", k.chonSan)
     }
 
+    @Test fun giongNoiCuaHang_nhomGiongNoi_khongTichSan() {
+        // xiaomi-mitv-mteq0 ghi tắt XiaoAI trong danh sách; 4.1.8: vẫn phải vào nhóm giọng nói, không tích sẵn.
+        val (_, ds) = tivi("xiaomi-mitv-mteq0")
+        val v = ds.first { it.pkg == "com.xiaomi.voicecontrol" }
+        assertEquals(LoaiMuc.GIONG_NOI, v.loai)
+        assertFalse(v.chonSan)
+    }
+
     @Test fun mediashell_luonNhomGoogleHome_khongTichSan() {
         val (_, ds) = tivi("xiaomi-mi-box-s", setOf("com.google.android.apps.mediashell"))
         ds.filter { it.pkg == "com.google.android.apps.mediashell" }.forEach {
