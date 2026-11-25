@@ -1283,6 +1283,7 @@ private fun TheHomeNoiDung(vm: PhienLamViec) {
             singleLine = true, modifier = Modifier.thoatOTv().fillMaxWidth(), shape = RoundedCornerShape(12.dp))
         Hang(t("Nút hẹn giờ tắt tivi", "Sleep timer button"), t("Một nút trên cùng: bấm lần lượt 15, 30, 60, 90 phút, bấm nữa là huỷ", "A top button: each press sets 15, 30, 60, 90 minutes, then off"), vm.nutHenTat) { vm.nutHenTat = it }
         Hang(t("Nút Ngủ", "Sleep button"), t("Một nút trên cùng cho tivi / máy chiếu ngủ ngay (tắt màn, tắt quạt), bật lại bằng nút nguồn. Tiện khi remote không có nút ngủ. Cần Android 9 trở lên", "A top button that puts the TV / projector to sleep now; wake it with the power key. Handy when the remote has no sleep key. Needs Android 9 or later"), vm.nutNgu) { vm.nutNgu = it }
+        Hang(t("Nút Đa nhiệm", "Recent apps button"), t("Một nút trên cùng cạnh Cài đặt, Wi-Fi mở màn đa nhiệm (app gần đây) của tivi", "A top button beside Settings and Wi-Fi that opens the TV's recent apps"), vm.nutDaNhiem) { vm.nutDaNhiem = it }
         Hang(t("Chữ giờ, ngày trắng sáng", "Bright white clock and date"), t("Dòng ngày tháng trắng hẳn thay vì xám nhạt, dễ đọc từ xa", "The date line in full white instead of soft grey, easier to read from afar"), vm.chuTrang) { vm.chuTrang = it }
         // Màu chữ đồng hồ, ngày, thời tiết (header_color; góp ý nggh, tranhoangnt555, Nam Tran 26–27/10/2026).
         Text(t("Màu chữ đồng hồ & thời tiết", "Clock & weather text colour"), fontSize = 14.sp)
@@ -1363,8 +1364,8 @@ private fun TheTuyChinh(vm: PhienLamViec) {
             vm.nutAppRemote) { vm.nutAppRemoteChon = it }
         // Dò phím remote (3.1.1): gán nút app lạ của remote (VTVgo, FPT Play…) cho app trên tivi.
         Text(t("Nút app trên remote tự gán", "Your own remote app buttons"), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-        Phu(t("Nút VTVgo, FPT Play… trên remote không mở app nữa sau khi đổi Home? Bấm Dò, rồi bấm nút đó trên remote, chọn app cho nó, Áp dụng lên tivi.",
-            "A remote's VTVgo / FPT Play… button stopped opening its app after the Home change? Tap Detect, press that button on the remote, pick its app, then apply."))
+        Phu(t("Nút VTVgo, FPT Play… trên remote không mở app nữa sau khi đổi Home? Bấm Dò, rồi bấm nút đó trên remote, chọn app cho nó (hoặc Đa nhiệm để mở app gần đây), Áp dụng lên tivi.",
+            "A remote's VTVgo / FPT Play… button stopped opening its app after the Home change? Tap Detect, press that button on the remote, pick its app (or Recent apps), then apply."))
         vm.phimGan.toList().forEach { d ->
             val goi = d.substringAfterLast(':'); val ma = d.removeSuffix(":$goi")
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1385,7 +1386,8 @@ private fun TheTuyChinh(vm: PhienLamViec) {
                     Column {
                         Text(t("Đã bắt được nút (mã ${if (scan > 0) scan else key}).", "Button caught (code ${if (scan > 0) scan else key})."), fontSize = 13.sp, color = ChuPhu)
                         LazyColumn(Modifier.heightIn(max = 380.dp)) {
-                            items(vm.appGanDuoc, key = { it }) { p ->
+                            // "recents" (màn đa nhiệm) và "library" (Thư viện app) là hành động của launcher, đứng đầu danh sách trước các app.
+                            items(listOf("recents", "library") + vm.appGanDuoc, key = { it }) { p ->
                                 Text(zone.vgs.tvsach.dulieu.tenDep(p), fontSize = 15.sp, modifier = Modifier.fillMaxWidth().clickable { vm.ganPhim(p) }.padding(vertical = 11.dp))
                             }
                         }

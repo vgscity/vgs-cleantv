@@ -1,5 +1,35 @@
 [
  {
+  "ban": "4.1.11",
+  "ngay": "2026-11-22",
+  "vi": [
+   "Nút Đa nhiệm trên thanh nút Home sạch: bật 'Nút Đa nhiệm' rồi Áp dụng lên tivi (chỉ chạy trên tivi có màn đa nhiệm)."
+  ],
+  "en": [
+   "Recent apps button in the clean Home's top bar: turn on 'Recent apps button' and apply (works on TVs that have a recent apps screen)."
+  ]
+ },
+ {
+  "ban": "4.1.10",
+  "ngay": "2026-11-22",
+  "vi": [
+   "Gán nút remote mở Thư viện app: Dò một nút trên remote → chọn Thư viện app."
+  ],
+  "en": [
+   "Assign a remote button to the App library: Detect a remote button → pick App library."
+  ]
+ },
+ {
+  "ban": "4.1.9",
+  "ngay": "2026-11-21",
+  "vi": [
+   "Gán nút remote mở màn Đa nhiệm (app gần đây): Dò một nút trên remote → chọn Đa nhiệm."
+  ],
+  "en": [
+   "Assign a remote button to Recent apps: Detect a remote button → pick Recent apps."
+  ]
+ },
+ {
   "ban": "4.1.8",
   "ngay": "2026-11-18",
   "vi": [

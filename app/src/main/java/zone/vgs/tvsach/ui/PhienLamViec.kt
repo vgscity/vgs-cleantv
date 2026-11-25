@@ -212,6 +212,8 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
     /** Nút Ngủ trên Home sạch (sleep_button, cần HomeKeyService, Android 9+). 4.1.2, góp ý hanhphucnoidau1999: máy chiếu remote
      *  chỉ có nút nguồn. Mặc định bật cho máy chiếu, tắt cho tivi; luôn ghi rõ vào config để lựa chọn không đổi theo máy. */
     var nutNgu by mutableStateOf(false)
+    /** Nút Đa nhiệm trên Home sạch (recents_button, cần HomeKeyService). 4.1.11, góp ý cafes.crs 22/11/2026. */
+    var nutDaNhiem by mutableStateOf(false)
     /**
      * Nút remote người dùng tự gán (3.1.1, "Dò phím remote"; góp ý Hoàng Hữu: nút VTVgo của remote TCL 65C655 chết sau khi
      * tắt Home gốc). Mỗi dòng là một mục app_keys: "scan:<mã quét>:<gói>" hoặc "<keycode>:<gói>". Cần HomeKeyService lọc phím.
@@ -239,13 +241,15 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         val dau = if (scan > 0) "scan:$scan:" else "$key:"
         phimGan.removeAll { it.startsWith(dau) }
         phimGan.add(dau + goi)
+        // "library" chỉ mở Thư viện app khi app_library bật (tắt thì phím chỉ đưa về Home): gán là bật luôn.
+        if (goi == "library") thuVienApp = true
         phimVuaDo = null
     }
     /** App có biểu tượng trên tivi, để gán cho nút remote. */
     val appGanDuoc: List<String> get() = trangThai?.let { tt -> tt.coBieuTuong.filter { it in tt.caiDat && it !in tt.daTat }.sortedBy { zone.vgs.tvsach.dulieu.tenDep(it).lowercase() } } ?: emptyList()
 
     /** HomeKeyService cần bật: phím Home lạ, phím app remote, hoặc mở app khi bật từ chế độ chờ. */
-    val canDichVuPhim get() = nutHome || dungPhimRemote || (moKhiBat && moKhiThuc) || luonVeHome || phimGan.isNotEmpty() || nutHenTat
+    val canDichVuPhim get() = nutHome || dungPhimRemote || (moKhiBat && moKhiThuc) || luonVeHome || phimGan.isNotEmpty() || nutHenTat || nutDaNhiem
     /**
      * Ô kênh đặt ở đầu dock, theo thứ tự chọn: VTVgo (3.0.0, mọi kênh), FPT Play và IPTV (3.1.0). Tối đa KENH_TOI_DA (link_tiles).
      */
@@ -1091,6 +1095,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         luonVeHome = j.optBoolean("power_on_home_always", false)
         nutHenTat = j.optBoolean("sleep_timer_button", false)
         nutNgu = j.optBoolean("sleep_button", nutNgu)
+        nutDaNhiem = j.optBoolean("recents_button", false)
         phimGan.clear(); j.optJSONArray("vgs_phim_gan")?.let { a -> (0 until a.length()).map { a.optString(it) }.filter { it.isNotBlank() }.forEach { phimGan.add(it) } }
         chuTrang = !cuaTheme("header_white") && j.optBoolean("header_white", false)
         if (j.optInt("vgs_bo_rieng", 0) > 1) phutDoiAnh = j.optInt("wallpaper_rotation_minutes", 15)
@@ -1296,6 +1301,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (luonVeHome) put("power_on_home_always", true)
         if (nutHenTat) put("sleep_timer_button", true)
         put("sleep_button", nutNgu)
+        if (nutDaNhiem) put("recents_button", true)
         if (chuTrang) put("header_white", true)
         mauChu?.let { put("header_color", it) }
         if (khungDau) put("header_panel", true)
@@ -1662,7 +1668,7 @@ class PhienLamViec(app: Application) : AndroidViewModel(app) {
         if (bo != null) thongBao = t("Đang gửi ${bo.size} ảnh nền…", "Sending ${bo.size} wallpaper pictures…")
         io { tv.dayCauHinh(json, anh, bo) }
         io { tv.datNutInput(nutInput) }
-        if (dungPhimRemote || (moKhiBat && moKhiThuc) || luonVeHome || phimGan.isNotEmpty() || nutHenTat) io { tv.batBatPhimHome() }
+        if (dungPhimRemote || (moKhiBat && moKhiThuc) || luonVeHome || phimGan.isNotEmpty() || nutHenTat || nutDaNhiem) io { tv.batBatPhimHome() }
         // Đổi giao diện cũng bật / tắt DNS AdGuard theo công tắc (trước 2.7.3 chỉ lúc cài Home sạch mới đặt).
         val dangChan = io { tv.dnsDangChan() }
         if (dnsChanQc && !dangChan) saoLuu?.let { sl -> io { tv.batDnsChanQc(sl) } }
