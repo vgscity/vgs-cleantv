@@ -1,5 +1,15 @@
 [
  {
+  "ban": "4.1.12",
+  "ngay": "2026-11-25",
+  "vi": [
+   "Home sạch cập nhật theo CleanYourTV mới: thêm 24 mẫu tivi (513 mẫu), ảnh nền mượt hơn, chữ chú thích ảnh nền tự mờ khi cuộn, tivi Coocaa nhận nguồn HDMI tốt hơn, bật tivi giữ đúng nguồn đã chọn."
+  ],
+  "en": [
+   "Clean Home follows the latest CleanYourTV: 24 more TV models (513), smoother wallpapers, the wallpaper caption fades while scrolling, better HDMI source lists on Coocaa, power-on keeps the chosen input."
+  ]
+ },
+ {
   "ban": "4.1.11",
   "ngay": "2026-11-22",
   "vi": [

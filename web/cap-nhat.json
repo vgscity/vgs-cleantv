@@ -1,25 +1,25 @@
 {
  "app": {
-  "versionCode": 131,
-  "versionName": "4.1.11",
-  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.11.apk",
-  "co": 12639685,
-  "ghiChu": "Nút Đa nhiệm trên thanh nút Home sạch: bật 'Nút Đa nhiệm' rồi Áp dụng lên tivi (chỉ chạy trên tivi có màn đa nhiệm).",
-  "ghiChuEn": "Recent apps button in the clean Home's top bar: turn on 'Recent apps button' and apply (works on TVs that have a recent apps screen).",
-  "ngay": "2026-11-22"
+  "versionCode": 132,
+  "versionName": "4.1.12",
+  "apk": "https://cleantv-dem.vgszone.workers.dev/apk/CleanTV-4.1.12.apk",
+  "co": 12688089,
+  "ghiChu": "Home sạch cập nhật theo CleanYourTV mới: thêm 24 mẫu tivi (513 mẫu), ảnh nền mượt hơn, chữ chú thích ảnh nền tự mờ khi cuộn, tivi Coocaa nhận nguồn HDMI tốt hơn, bật tivi giữ đúng nguồn đã chọn.",
+  "ghiChuEn": "Clean Home follows the latest CleanYourTV: 24 more TV models (513), smoother wallpapers, the wallpaper caption fades while scrolling, better HDMI source lists on Coocaa, power-on keeps the chosen input.",
+  "ngay": "2026-11-25"
  },
  "duLieu": {
   "du-lieu.json": {
-   "phienBan": "f8c59fb21e81469c",
+   "phienBan": "c5695665a156b19e",
    "url": "/ota/du-lieu.json",
-   "co": 2987156,
-   "tuBan": 131
+   "co": 3158366,
+   "tuBan": 132
   },
   "tvhome.apk": {
-   "phienBan": "335deb18a8377f4c",
+   "phienBan": "733ac2992bb6e24d",
    "url": "/ota/tvhome.apk",
-   "co": 711249,
-   "tuBan": 131
+   "co": 712169,
+   "tuBan": 132
   }
  }
 }
